@@ -15,6 +15,7 @@ export const getHubManifest = () => {
 
 	return {
 		schemaVersion: 1,
+		buildCommit: privateEnv.GITBLOG_BUILD_COMMIT || undefined,
 		enabled: !isDisabled(publicEnv.PUBLIC_HUB_ENABLED),
 		repository,
 		siteUrl: toAbsoluteUrl(site, '/'),

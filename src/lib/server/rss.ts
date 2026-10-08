@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/private';
 import type { Locale } from '$lib/i18n';
 import { sourceLocale } from '$lib/locales';
 import { toHomePath, toPostPath, toRssPath } from '$lib/routes';
@@ -54,7 +55,7 @@ ${categories}
 	<link>${escapeXml(channelLink)}</link>
 	<description>${escapeXml(siteConfig.description)}</description>
 	<language>${escapeXml(siteConfig.language)}</language>
-	<hub:schemaVersion>1</hub:schemaVersion>
+	<hub:schemaVersion>1</hub:schemaVersion>${env.GITBLOG_BUILD_COMMIT ? `\n\t<hub:buildCommit>${escapeXml(env.GITBLOG_BUILD_COMMIT)}</hub:buildCommit>` : ''}
 	<hub:sourceLocale>${escapeXml(sourceLocale)}</hub:sourceLocale>
 	<lastBuildDate>${new Date(lastBuildDate).toUTCString()}</lastBuildDate>
 	<atom:link href="${escapeXml(feedLink)}" rel="self" type="application/rss+xml" />

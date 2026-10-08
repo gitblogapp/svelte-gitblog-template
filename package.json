@@ -13,7 +13,7 @@
 		"test:post-releases": "bun ./tests/test-post-releases.mjs",
 		"test:post-ids": "bun ./tests/test-post-ids.mjs",
 		"test:giscus-sync": "bun ./tests/test-giscus-sync.mjs",
-		"test:hub-hints": "bun ./tests/test-hub-hints.mjs",
+		"test:hub-hints": "bun ./tests/test-hub-hints.mjs && bun ./tests/test-blog-registration.mjs",
 		"hub:validate": "bun ./scripts/validate-hub-contract.mjs",
 		"translate:content": "bun run posts:ids && bun ./scripts/translate-posts.mjs",
 		"translate:posts": "bun run translate:content",

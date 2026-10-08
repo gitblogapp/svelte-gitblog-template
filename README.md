@@ -398,3 +398,13 @@ Open your blog in GitBlog Studio and select **Template updates**. The service co
 The template's `.gitblog/release.json` publishes a stable version and immutable commit SHA. Maintainers should commit and validate code first, then publish the release pointer in a separate commit. A blog's `.gitblog/template.json` is written by its update PR, recording the official revision for subsequent comparisons. See [the customization guide](docs/customization.md) for preservation rules and older-blog limitations.
 
 The GitBlog App needs Contents, Pull requests, Workflows, and Actions access on the target blog. Existing installations may need to approve the added permissions. No PAT or App private key is stored in this repository.
+
+## Automatic GitBlog feed registration
+
+With `PUBLIC_HUB_ENABLED=true` and `PUBLIC_HUB_URL=https://gitblog.app`, a successful Pages deployment calls the official, immutable `register-blog.yml` workflow. It verifies that this is a public blog created from the official template (or fork), reads the Pages address, and sends GitHub Actions OIDC proof. **Installing the GitBlog App is not required for feed registration.** GitHub access tokens are never sent to GitBlog.
+
+Allow the official template's reusable workflow and `id-token: write` in your Actions policy. Initial notification delivery retries up to four times. If it still fails, run **Actions → Sync GitBlog feed → Run workflow**, or deploy again. A blog with neither an installed App nor a successful first notification cannot be discovered automatically. Existing App-based discovery remains supported.
+
+GitBlog records the notification before fetching public RSS immediately. Temporary RSS/CDN failures are retried from durable server state. The manifest and RSS include the build commit so an old cached response cannot replace the new deployment. Registered feeds also receive a daily fallback check. Set `PUBLIC_HUB_ENABLED=false` and redeploy to opt out; an already registered blog becomes hidden when GitBlog next reads its disabled manifest.
+
+Older blogs need the updated deployment workflow, `scripts/hub-settings.mjs`, RSS/manifest build metadata, and the new `sync-hub.yml` workflow. Apply this template release through Studio's **Template updates**. Existing unsigned deployment hints remain supported for previously registered blogs. A failed feed registration job does not undo a successful Pages deployment.

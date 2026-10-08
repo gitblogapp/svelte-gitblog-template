@@ -340,3 +340,13 @@ bun run build
 ## 디자인·콘텐츠·추가 기능 보존
 
 디자인은 `src/lib/theme`, 사용자 기능은 `src/lib/extensions`, 공식 동작은 `src/lib/template`에서 관리합니다. `bun run update:check`는 콘텐츠를 생성·번역하지 않고 검사와 빌드를 실행하며 보호 파일의 변경 여부를 확인합니다. `bun run test:template`은 임시 복사본에서 사용자 스타일과 확장 연결을 검증합니다. 자세한 규약과 기존 사용자 코드 이전 절차는 [커스터마이징 가이드](../customization.md)를 참고하세요.
+
+## GitBlog 피드 자동 등록
+
+`.env.production`의 `PUBLIC_HUB_ENABLED=true`, `PUBLIC_HUB_URL=https://gitblog.app` 설정으로 배포 후 피드에 참여합니다. 공식 템플릿으로 만든 공개 저장소 또는 포크라면 **GitBlog App 설치 없이도** 등록됩니다. 배포 작업이 고정된 공식 `register-blog.yml`을 호출하고, 이 워크플로가 저장소의 템플릿 관계·공개 여부·기본 브랜치·Pages 주소를 확인한 뒤 GitHub Actions OIDC 증명을 보냅니다. 저장소 접근 토큰은 GitBlog에 전송하지 않습니다.
+
+GitHub Actions 정책에서 공식 템플릿의 재사용 워크플로와 `id-token: write`를 허용해야 합니다. 첫 알림은 최대 4회 전송을 시도합니다. 모두 실패했다면 **Actions → Sync GitBlog feed → Run workflow**로 재시도하거나 다시 배포하세요. 앱 설치도 없고 첫 알림도 성공하지 않은 저장소는 서비스가 자동으로 발견할 수 없습니다. 기존 앱 설치 기반 탐색도 함께 유지됩니다.
+
+알림을 받은 GitBlog는 D1에 수집 상태를 먼저 기록하고 공개 RSS를 바로 확인합니다. CDN에서 이전 배포 결과가 반환되거나 RSS 요청이 실패하면 서버가 재시도합니다. 정상 피드는 매일 한 번 보완 수집합니다. 참여를 중단하려면 `PUBLIC_HUB_ENABLED=false`로 재배포하세요. 이미 등록된 블로그는 다음 manifest 확인 시 숨겨집니다.
+
+기존 블로그에는 새 배포 워크플로, `scripts/hub-settings.mjs`, RSS·manifest의 배포 커밋 정보와 `sync-hub.yml`이 필요합니다. Studio의 **템플릿 업데이트**로 적용할 수 있습니다. 이전 템플릿의 인증 없는 알림도 이미 등록된 블로그에서는 계속 지원합니다. 피드 등록 작업이 실패해도 완료된 Pages 배포는 유지됩니다.

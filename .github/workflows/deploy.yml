@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_sha: ${{ steps.deployment-commit.outputs.sha }}
+      hub_enabled: ${{ steps.hub-settings.outputs.enabled }}
+      hub_url: ${{ steps.hub-settings.outputs.hub_url }}
 
     steps:
       - name: Checkout
@@ -130,9 +132,18 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Record deployed commit
+        id: deployment-commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Read feed participation settings
+        id: hub-settings
+        run: node scripts/hub-settings.mjs
+
       - name: Build site
         run: bun run build
         env:
+          GITBLOG_BUILD_COMMIT: ${{ steps.deployment-commit.outputs.sha }}
           GITHUB_ACTIONS: 'true'
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
@@ -149,10 +160,6 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_USE_TRANSLATIONS: ${{ steps.release-settings.outputs.use_translations }}
-
-      - name: Record deployed commit
-        id: deployment-commit
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       # upload-pages-artifact excludes all dot directories, including .well-known.
       - name: Package Pages including public manifest
@@ -182,12 +189,14 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Checkout hint sender
-        continue-on-error: true
-        uses: actions/checkout@v4
-
-      - name: Notify Blog Hub of successful deploy
-        continue-on-error: true
-        run: node ./scripts/send-hub-hint.mjs deploy
-        env:
-          DEPLOYED_COMMIT_SHA: ${{ needs.build.outputs.commit_sha }}
+  register:
+    needs: [build, deploy]
+    if: needs.build.outputs.hub_enabled == 'true'
+    uses: gitblogapp/svelte-gitblog-template/.github/workflows/register-blog.yml@5e94932e25fc5e048ff43cfe5b806579948a549c
+    permissions:
+      contents: read
+      pages: read
+      id-token: write
+    with:
+      hub_url: ${{ needs.build.outputs.hub_url }}
+      commit_sha: ${{ needs.build.outputs.commit_sha }}
