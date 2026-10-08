@@ -31,7 +31,7 @@ jobs:
     if: github.event.repository.is_template != true
     # Public, immutable runner code. No service-repository App installation or
     # blog secret is required. Keep this pin aligned with the GitBlog server.
-    uses: gitblogapp/gitblog/.github/workflows/post-history-worker.yml@286e790bf3dbd339543e5bd2007979d4504b61d2
+    uses: gitblogapp/svelte-gitblog-template/.github/workflows/post-history-worker.yml@59a3f6dfece69d2e50dd7e8d7196ab7d96cedbfb
     with:
       operation: ${{ inputs.operation }}
       phase: ${{ inputs.phase }}
