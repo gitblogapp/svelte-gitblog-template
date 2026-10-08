@@ -18,8 +18,16 @@
 	const getHost = () => {
 		try {
 			const url = new URL(site.giscusHost);
-			if (!url.username && !url.password && (url.protocol === 'https:' || (dev && url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)))) return url.origin;
-		} catch { /* Use the official host when the configuration is invalid. */ }
+			if (
+				!url.username &&
+				!url.password &&
+				(url.protocol === 'https:' ||
+					(dev && url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)))
+			)
+				return url.origin;
+		} catch {
+			/* Use the official host when the configuration is invalid. */
+		}
 		return site.giscusProvider === 'gitblog' ? null : 'https://giscus.app';
 	};
 
@@ -131,7 +139,9 @@
 				</div>
 			{:else}
 				<div class="giscus-empty font-label">
-					{site.giscusProvider === 'gitblog' ? ui.comments.pendingMessage : ui.comments.emptyMessage}
+					{site.giscusProvider === 'gitblog'
+						? ui.comments.pendingMessage
+						: ui.comments.emptyMessage}
 				</div>
 			{/if}
 		</div>

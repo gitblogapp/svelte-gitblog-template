@@ -1,10 +1,22 @@
 name: Test history removal
 on:
   pull_request:
-    paths: ['scripts/history/**', 'tests/history/**', '.github/workflows/post-history-worker.yml', '.github/workflows/test-history.yml']
+    paths:
+      [
+        'scripts/history/**',
+        'tests/history/**',
+        '.github/workflows/post-history-worker.yml',
+        '.github/workflows/test-history.yml'
+      ]
   push:
     branches: [main]
-    paths: ['scripts/history/**', 'tests/history/**', '.github/workflows/post-history-worker.yml', '.github/workflows/test-history.yml']
+    paths:
+      [
+        'scripts/history/**',
+        'tests/history/**',
+        '.github/workflows/post-history-worker.yml',
+        '.github/workflows/test-history.yml'
+      ]
 permissions:
   contents: read
 jobs:
