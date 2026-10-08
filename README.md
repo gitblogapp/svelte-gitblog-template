@@ -388,3 +388,12 @@ Theme files live in `src/lib/theme`, user extensions in `src/lib/extensions`, an
 gitblog 통합 댓글을 사용하려면 `PUBLIC_GISCUS_PROVIDER=gitblog`, `PUBLIC_GISCUS_HOST=https://gitblog.app`으로 설정합니다. 저장소·카테고리 ID는 gitblog에서 자동 연결합니다. 개발 모드에서는 localhost HTTP 미리보기도 허용하지만 운영 블로그에는 공개 HTTPS 주소가 필요합니다.
 
 gitblog에서 생성한 블로그는 앱 연결 완료 시 댓글 저장소·카테고리 ID 4개가 자동 저장됩니다. `PUBLIC_GISCUS_PROVIDER=gitblog`이면서 운영 호스트가 비어 있으면 댓글 영역에 준비 중 안내를 표시합니다. 공식 giscus 설치나 수동 ID 입력은 필요하지 않습니다.
+
+
+## Template updates in GitBlog Studio
+
+Open your blog in GitBlog Studio and select **Template updates**. The service compares the previous template snapshot, your blog, and the published stable revision, preserves user-owned files, and prepares an update PR. Apply it only after reviewing the changes and passing the `validate-update.yml` checks. Conflicting edits require manual reconciliation; this is a file-level merge, not an automatic framework or theme migration.
+
+The template's `.gitblog/release.json` publishes a stable version and immutable commit SHA. Maintainers should commit and validate code first, then publish the release pointer in a separate commit. A blog's `.gitblog/template.json` is written by its update PR, recording the official revision for subsequent comparisons. See [the customization guide](docs/customization.md) for preservation rules and older-blog limitations.
+
+The GitBlog App needs Contents, Pull requests, Workflows, and Actions access on the target blog. Existing installations may need to approve the added permissions. No PAT or App private key is stored in this repository.
