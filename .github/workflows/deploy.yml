@@ -65,13 +65,22 @@ jobs:
         id: changed-posts
         env:
           BEFORE_SHA: ${{ github.event.before }}
+          FORCED_PUSH: ${{ github.event.forced }}
         run: |
           changed_posts_file="$RUNNER_TEMP/changed-posts.nul"
           : > "$changed_posts_file"
           if [ "${GITHUB_EVENT_NAME}" != "push" ]; then
             echo "No changed source posts for this event."
+          elif [ "$FORCED_PUSH" = "true" ]; then
+            echo "History was rewritten. Skip post release sync; continue site deployment."
           elif [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
-            git diff --diff-filter=ACMRT --name-only -z "$BEFORE_SHA" "$GITHUB_SHA" -- 'content/posts/*.md' > "$changed_posts_file"
+            # fetch-depth: 0 fetches reachable history, not commits removed by a
+            # rewrite. Never fetch the deleted history just to generate releases.
+            if [ -n "$BEFORE_SHA" ] && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null && git merge-base --is-ancestor "$BEFORE_SHA" "$GITHUB_SHA"; then
+              git diff --diff-filter=ACMRT --name-only -z "$BEFORE_SHA" "$GITHUB_SHA" -- 'content/posts/*.md' > "$changed_posts_file"
+            else
+              echo "Previous history is unavailable or was rewritten. Skip post release sync; continue site deployment."
+            fi
           else
             git diff-tree --root --diff-filter=ACMRT --no-commit-id --name-only -r -z "$GITHUB_SHA" -- 'content/posts/*.md' > "$changed_posts_file"
           fi

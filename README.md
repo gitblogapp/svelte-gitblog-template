@@ -77,17 +77,17 @@ const message = 'Code blocks are preserved during translation.';
 
 Frontmatter fields follow these rules:
 
-| Field         | Required | Format and behavior                                                                        |
-| ------------- | -------- | ------------------------------------------------------------------------------------------ |
-| `id`          | Required | Immutable UUID or ULID. Generate missing IDs with `bun run posts:ids`; never reuse one.    |
-| `title`       | Required | Used on list/detail pages and in SEO metadata.                                             |
-| `description` | Required | Used as the post excerpt and SEO description.                                              |
-| `date`        | Required | Use `YYYY-MM-DD` or an ISO datetime. Controls publication date and sorting.                |
+| Field         | Required | Format and behavior                                                                            |
+| ------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `id`          | Required | Immutable UUID or ULID. Generate missing IDs with `bun run posts:ids`; never reuse one.        |
+| `title`       | Required | Used on list/detail pages and in SEO metadata.                                                 |
+| `description` | Required | Used as the post excerpt and SEO description.                                                  |
+| `date`        | Required | Use `YYYY-MM-DD` or an ISO datetime. Controls publication date and sorting.                    |
 | `updated`     | Optional | ISO date or datetime for meaningful post revisions. Included in the gitblog feed when present. |
-| `published`   | Optional | Defaults to `true`. Set to `false` to exclude the post from the build.                     |
-| `category`    | Optional | Defaults to `Notes`. Register it in `content/categories` before selecting it in Pages CMS. |
-| `tags`        | Optional | A string array is recommended. Register values in `content/tags` for Pages CMS.            |
-| `cover`       | Optional | Public path relative to `static`; CMS uploads use `/uploads/...`.                          |
+| `published`   | Optional | Defaults to `true`. Set to `false` to exclude the post from the build.                         |
+| `category`    | Optional | Defaults to `Notes`. Register it in `content/categories` before selecting it in Pages CMS.     |
+| `tags`        | Optional | A string array is recommended. Register values in `content/tags` for Pages CMS.                |
+| `cover`       | Optional | Public path relative to `static`; CMS uploads use `/uploads/...`.                              |
 
 Tags are stored without `#` and displayed in the same form. An array is recommended:
 
@@ -294,6 +294,8 @@ GitBlog Studio can analyze and remove a post’s Markdown history after the repo
 
 New blogs inherit this workflow. For an existing blog, add the latest template’s `.github/workflows/post-history.yml` to its default branch, or merge the changes if it already exists. Enable GitHub Actions and allow the `gitblogapp/svelte-gitblog-template` reusable workflow in the repository/organization Actions policy. The caller’s pinned SHA must match the version approved by the GitBlog server; Studio reports a missing or outdated workflow before starting an operation. Run history, logs, and Actions usage belong to the blog repository.
 
+After a history rewrite, deployment continues from the current commit. Forced pushes and unavailable or non-ancestor `before` commits skip only post Release synchronization; surviving posts are not republished as new releases, and removed history is not fetched again.
+
 Start analysis and confirm removal in Studio. Manually dispatching or re-running an Actions job cannot replace administrator confirmation. Branch protections still apply, and concurrent changes require a new analysis. Git history removal changes commit SHAs and does not erase external clones, GitHub caches, Discussions, Releases, images, or old build artifacts. Normal post deletion remains a separate operation.
 
 ## Translation workflow
@@ -388,7 +390,6 @@ Theme files live in `src/lib/theme`, user extensions in `src/lib/extensions`, an
 gitblog 통합 댓글을 사용하려면 `PUBLIC_GISCUS_PROVIDER=gitblog`, `PUBLIC_GISCUS_HOST=https://gitblog.app`으로 설정합니다. 저장소·카테고리 ID는 gitblog에서 자동 연결합니다. 개발 모드에서는 localhost HTTP 미리보기도 허용하지만 운영 블로그에는 공개 HTTPS 주소가 필요합니다.
 
 gitblog에서 생성한 블로그는 앱 연결 완료 시 댓글 저장소·카테고리 ID 4개가 자동 저장됩니다. `PUBLIC_GISCUS_PROVIDER=gitblog`이면서 운영 호스트가 비어 있으면 댓글 영역에 준비 중 안내를 표시합니다. 공식 giscus 설치나 수동 ID 입력은 필요하지 않습니다.
-
 
 ## Template updates in GitBlog Studio
 

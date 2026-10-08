@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = await mkdtemp(path.join(os.tmpdir(), 'gitblog-post-releases-'));
-const git = (...args) => execFileSync('git', args, { cwd: fixture, encoding: 'utf8' });
+const git = (...args) =>
+	execFileSync('git', args, { cwd: fixture, encoding: 'utf8', stdio: 'pipe' });
 const post = (title) =>
 	`---\ntitle: ${JSON.stringify(title)}\ndescription: Regression test\ndate: 2026-10-06\npublished: true\n---\nPost body\n`;
 const filenames = [
@@ -29,13 +30,14 @@ const detect = step
 const listFile = path.join(fixture, 'changed-posts.nul');
 const outputFile = path.join(fixture, 'output');
 const payloadFile = path.join(fixture, 'payloads.jsonl');
-const runDetection = async (before, event = 'push') => {
+const runDetection = async (before, event = 'push', forced = false) => {
 	await writeFile(outputFile, '');
 	execFileSync('bash', ['-e', '-o', 'pipefail', '-c', detect], {
 		cwd: fixture,
 		env: {
 			...process.env,
 			BEFORE_SHA: before,
+			FORCED_PUSH: String(forced),
 			GITHUB_SHA: git('rev-parse', 'HEAD').trim(),
 			GITHUB_EVENT_NAME: event,
 			RUNNER_TEMP: fixture,
@@ -138,9 +140,39 @@ try {
 		[],
 		'manual deploy retains existing no-release behavior'
 	);
+	assert.deepEqual(
+		await runDetection(initial, 'push', true),
+		[],
+		'forced pushes must not publish releases even when the old commit is available'
+	);
+	assert.equal(await readFile(outputFile, 'utf8'), 'has_changes=false\n');
+
+	const beforeRewrite = git('rev-parse', 'HEAD').trim();
+	const rewritten = git(
+		'commit-tree',
+		git('rev-parse', 'HEAD^{tree}').trim(),
+		'-m',
+		'Rewritten history'
+	).trim();
+	git('reset', '--hard', rewritten);
+	assert.deepEqual(
+		await runDetection(beforeRewrite),
+		[],
+		'non-ancestor commits left in the object database must not republish surviving posts'
+	);
+	git('reflog', 'expire', '--expire=now', '--all');
+	git('prune', '--expire=now');
+	assert.throws(() => git('cat-file', '-e', `${beforeRewrite}^{commit}`));
+	assert.deepEqual(
+		await runDetection(beforeRewrite),
+		[],
+		'a removed before SHA must not fail deployment after a history purge'
+	);
+	assert.equal(await readFile(outputFile, 'utf8'), 'has_changes=false\n');
+	assert.deepEqual(await runDetection(''), [], 'missing before SHA must not fail deployment');
 
 	console.log(
-		'Post release regression tests passed: literal paths, root commit, modify/rename/delete, empty/manual runs.'
+		'Post release regression tests passed: literal paths, root commit, modify/rename/delete, empty/manual runs, forced pushes and removed history.'
 	);
 } finally {
 	await rm(fixture, { recursive: true, force: true });
