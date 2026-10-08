@@ -288,6 +288,14 @@ Store only source copy in `PUBLIC_SITE_TAGLINE`, `PUBLIC_SITE_DESCRIPTION`, and 
 
 `PUBLIC_SITE_AUTHOR` is accepted as an alias of `PUBLIC_SITE_OWNER` and takes precedence when both are present.
 
+## Removing a post from Git history
+
+GitBlog Studio can analyze and remove a post’s Markdown history after the repository administrator reviews and confirms the exact plan. `.github/workflows/post-history.yml` runs in this **blog repository** and calls GitBlog’s public reusable worker at an immutable commit. The GitBlog App only needs access to this blog; do not add a PAT or App private key to its secrets. The service repository does not need an App installation.
+
+New blogs inherit this workflow. For an existing blog, add the latest template’s `.github/workflows/post-history.yml` to its default branch, or merge the changes if it already exists. Enable GitHub Actions and allow the `gitblogapp/gitblog` reusable workflow in the repository/organization Actions policy. The caller’s pinned SHA must match the version approved by the GitBlog server; Studio reports a missing or outdated workflow before starting an operation. Run history, logs, and Actions usage belong to the blog repository.
+
+Start analysis and confirm removal in Studio. Manually dispatching or re-running an Actions job cannot replace administrator confirmation. Branch protections still apply, and concurrent changes require a new analysis. Git history removal changes commit SHAs and does not erase external clones, GitHub caches, Discussions, Releases, images, or old build artifacts. Normal post deletion remains a separate operation.
+
 ## Translation workflow
 
 1. Pages CMS stores source posts in `content/posts/*.md`.
