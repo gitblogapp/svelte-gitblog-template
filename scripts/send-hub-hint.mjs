@@ -122,7 +122,7 @@ const main = async () => {
 		headers: {
 			Accept: 'application/json',
 			'Content-Type': 'application/json',
-			'User-Agent': 'gitblog-hub-hint/1.0'
+			'User-Agent': 'gitblog-hint/1.0'
 		},
 		body: JSON.stringify(payload),
 		signal: AbortSignal.timeout(10_000)

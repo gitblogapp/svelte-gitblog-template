@@ -83,7 +83,7 @@ Frontmatter fields follow these rules:
 | `title`       | Required | Used on list/detail pages and in SEO metadata.                                             |
 | `description` | Required | Used as the post excerpt and SEO description.                                              |
 | `date`        | Required | Use `YYYY-MM-DD` or an ISO datetime. Controls publication date and sorting.                |
-| `updated`     | Optional | ISO date or datetime for meaningful post revisions. Included in the Hub feed when present. |
+| `updated`     | Optional | ISO date or datetime for meaningful post revisions. Included in the gitblog feed when present. |
 | `published`   | Optional | Defaults to `true`. Set to `false` to exclude the post from the build.                     |
 | `category`    | Optional | Defaults to `Notes`. Register it in `content/categories` before selecting it in Pages CMS. |
 | `tags`        | Optional | A string array is recommended. Register values in `content/tags` for Pages CMS.            |
@@ -122,7 +122,7 @@ Do not add `locale`, `sourcePath`, `sourceHash`, `translationSchemaVersion`, `tr
 - Pagefind indexes post titles, descriptions, and bodies.
 - Category, tag, and locale values are exposed as Pagefind filters.
 
-## Blog Hub participation
+## gitblog participation
 
 The static build publishes a discovery manifest at `/.well-known/blog-hub.json` (under the GitHub Pages project base path when one is configured). Participation is enabled by default. Set the following public deployment values in `.env.production`:
 
@@ -134,8 +134,8 @@ PUBLIC_SITE_REPOSITORY=owner/repository
 
 - Set `PUBLIC_HUB_ENABLED=false` (also accepts `0`, `no`, or `off`) to opt out. The manifest remains discoverable with `enabled: false`, and workflows stop sending hints.
 - `PUBLIC_SITE_REPOSITORY` identifies this blog repository and is the local-build fallback. GitHub Actions uses the trustworthy `GITHUB_REPOSITORY` context instead, so forks do not inherit the upstream repository identity.
-- `PUBLIC_HUB_URL` is the Hub origin used for optional deployment and discussion-comment hints. Leave it empty to rely only on periodic Hub discovery and feed polling.
-- Hint requests contain GitHub identifiers only. The Hub must fetch and verify the public manifest, feed, Discussion, and comment itself.
+- `PUBLIC_HUB_URL` is the gitblog origin used for optional deployment and discussion-comment hints. Leave it empty to rely only on periodic gitblog discovery and feed polling.
+- Hint requests contain GitHub identifiers only. gitblog must fetch and verify the public manifest, feed, Discussion, and comment itself.
 - Hint delivery has a 10-second timeout and never fails a successful Pages deployment or comment workflow.
 
 The schema-version 1 manifest includes `repository`, `siteUrl`, `sourceLocale`, and an absolute RSS URL for every configured locale. RSS remains valid RSS 2.0 and adds the `https://gitblog.dev/ns/hub/1.0` namespace:
