@@ -95,7 +95,9 @@ User content stays unchanged.
 		item.includes('32ac91be-2d4a-4e0a-a83f-a944fbf126d0')
 	);
 	assert.ok(
-		fixtureItem?.includes('<hub:bodyExcerpt>User content stays unchanged.</hub:bodyExcerpt>')
+		fixtureItem?.includes(
+			'<hub:bodyExcerpt>Fixture heading\n\nUser content stays unchanged.</hub:bodyExcerpt>'
+		)
 	);
 	assert.ok(
 		fixtureItem?.includes(

@@ -13,7 +13,25 @@ assert.equal(
 	),
 	'Actual body.'
 );
-assert.equal(createBodyExcerpt('One.\n\nTwo.\n\nThree.\n\nFour.'), 'One.\n\nTwo.\n\nThree.');
+assert.equal(
+	createBodyExcerpt('One.\n\nTwo.\n\nThree.\n\nFour.'),
+	'One.\n\nTwo.\n\nThree.\n\nFour.'
+);
+const shortIntro = 'Hello.\n\nWelcome.\n\nLet’s begin.';
+const usefulParagraph = 'Actual explanation. '.repeat(44).trim();
+assert.equal(
+	createBodyExcerpt(`${shortIntro}\n\n## How it works\n\n${usefulParagraph}\n\nNot needed.`),
+	`${shortIntro}\n\nHow it works\n\n${usefulParagraph}`
+);
+assert.equal(createBodyExcerpt('A short article.\n\n## Empty section'), 'A short article.');
+assert.equal(createBodyExcerpt('## Empty section\n\n```js\ncode()\n```'), '');
+assert.equal(createBodyExcerpt('## Section\n\nSmall body.'), 'Section\n\nSmall body.');
+const sentenceBoundary = createBodyExcerpt('가'.repeat(850) + '. ' + '나'.repeat(600));
+assert.equal(sentenceBoundary, '가'.repeat(850) + '.…');
+const noEarlyCut = createBodyExcerpt('짧은 도입입니다. ' + '가'.repeat(1400));
+assert.equal(Array.from(noEarlyCut).length, 1200);
+const hugeHeading = createBodyExcerpt(`## ${'제목'.repeat(800)}\n\nActual body.`);
+assert.equal(hugeHeading, 'Actual body.');
 assert.equal(
 	createBodyExcerpt('> Quoted **body**.\n\n- First item\n- Second item'),
 	'Quoted body.\n\nFirst item\n\nSecond item'
