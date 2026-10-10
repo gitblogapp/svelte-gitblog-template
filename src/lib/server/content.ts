@@ -10,6 +10,7 @@ import {
 } from '$lib/locales';
 import { getSiteConfig } from '$lib/site';
 import { createGiscusTerm, isPostId } from '$lib/server/post-identity';
+import { createBodyExcerpt } from './body-excerpt';
 
 const escapeHtml = (value: string) =>
 	value
@@ -90,13 +91,14 @@ type ParsedPost = {
 	tags: string[];
 	cover: string | null;
 	excerpt: string;
+	bodyExcerpt: string;
 	giscusTerm: string;
 	html: string;
 	timestamp: number;
 };
 
-export type BlogPost = Omit<ParsedPost, 'published' | 'timestamp'>;
-export type PostSummary = Omit<ParsedPost, 'html' | 'published' | 'timestamp'>;
+export type BlogPost = Omit<ParsedPost, 'published' | 'timestamp' | 'bodyExcerpt'>;
+export type PostSummary = Omit<ParsedPost, 'html' | 'published' | 'timestamp' | 'bodyExcerpt'>;
 
 const toSlug = (path: string) => path.split('/').at(-1)?.replace(/\.md$/, '') ?? path;
 
@@ -255,6 +257,7 @@ const parsePost = (
 		tags: normalizeTags(frontmatter.tags),
 		cover: normalizeCover(frontmatter.cover),
 		excerpt: createExcerpt(frontmatter.description, content),
+		bodyExcerpt: createBodyExcerpt(content),
 		giscusTerm: createGiscusTerm(id),
 		html: marked.parse(content) as string,
 		timestamp
@@ -337,6 +340,12 @@ const toBlogPost = (post: ParsedPost): BlogPost => ({
 
 export const getAllPosts = (locale: Locale = sourceLocale): PostSummary[] =>
 	(postsByLocale.get(locale) ?? []).map(toSummary);
+
+export const getFeedPosts = (locale: Locale = sourceLocale) =>
+	(postsByLocale.get(locale) ?? []).map((post) => ({
+		...toSummary(post),
+		bodyExcerpt: post.bodyExcerpt
+	}));
 
 export const getPost = (slug: string, locale: Locale = sourceLocale): BlogPost | undefined => {
 	const post = postsByLocale.get(locale)?.find((entry) => entry.slug === slug);

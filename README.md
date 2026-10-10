@@ -418,3 +418,9 @@ Set `PUBLIC_ANALYTICS_ENABLED=false` in `.env.production` (or disable **Blog vis
 ### Blog name and image
 
 Set `PUBLIC_SITE_TITLE` to the display name of your blog, independently of the GitHub repository name. `PUBLIC_SITE_IMAGE` is an optional public HTTPS image URL used on GitBlog blog cards and the blog header. Studio can upload a PNG, JPEG, GIF or WebP (up to 5 MB) to `static/uploads/blog/` in your repository and save its URL when creating or configuring a blog. Removing the image setting restores the title initial; uploaded files and Git history are preserved. The GitBlog manifest publishes both fields so app-free blogs can update their identity through deployment notifications and feed collection.
+
+## Shorts article excerpts
+
+RSS includes an optional `hub:bodyExcerpt` field containing real article prose, separately from the existing description. The build extracts up to three opening paragraphs (at most 1,200 Unicode characters), preserving paragraph breaks and skipping headings, fenced code, images, tables, and raw HTML. Content files are not rewritten. The field is XML-escaped plain text; consumers must never execute it as HTML.
+
+The full feed stays within the hub's 2 MiB limit by budgeting excerpt bytes per article. An excerpt may be shortened or omitted when space is limited; published articles are never removed from the feed to make room. Existing blogs receive this feature after updating and deploying the template; the hub must also support the new field. Run `bun run test:body-excerpt` for extraction checks and `bun run test:template` for the built RSS integration check.

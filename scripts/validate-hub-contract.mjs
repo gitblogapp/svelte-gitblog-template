@@ -65,6 +65,7 @@ for (const feed of manifest.feeds) {
 	const relativePath = decodeURIComponent(feedUrl.pathname.slice(siteUrl.pathname.length));
 	const feedFile = path.join(buildDir, relativePath);
 	const xml = await readFile(feedFile, 'utf8');
+	assert(Buffer.byteLength(xml) <= 2 * 1024 * 1024, `feed ${feed.locale} exceeds 2 MiB`);
 	assert(
 		xml.includes('xmlns:hub="https://gitblog.dev/ns/hub/1.0"'),
 		`feed ${feed.locale} is missing the Hub namespace`
@@ -84,6 +85,11 @@ for (const feed of manifest.feeds) {
 		const sourceLocale = unescapeXml(getElement(item, 'hub:sourceLocale'));
 		const giscusTerm = unescapeXml(getElement(item, 'hub:giscusTerm'));
 		const expectedTerm = `giscus-post-${createHash('sha256').update(id).digest('hex').slice(0, 16)}`;
+		const bodyExcerpt = unescapeXml(getElement(item, 'hub:bodyExcerpt'));
+		assert(
+			Array.from(bodyExcerpt).length <= 1200,
+			`post ${id} body excerpt exceeds 1200 characters`
+		);
 
 		assert(isPostId(id), `feed ${feed.locale} has invalid post ID ${id}`);
 		assert(!ids.has(id), `feed ${feed.locale} repeats post ID ${id}`);

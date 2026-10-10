@@ -90,6 +90,19 @@ User content stays unchanged.
 	});
 	assert.equal(result.status, 0, result.error?.message ?? `${result.stdout}\n${result.stderr}`);
 	assert.deepEqual(changedPaths(before, await snapshotPaths(fixture, protectedPaths)), []);
+	const rss = await readFile(path.join(fixture, 'build/rss.xml'), 'utf8');
+	const fixtureItem = (rss.match(/<item>[\s\S]*?<\/item>/g) ?? []).find((item) =>
+		item.includes('32ac91be-2d4a-4e0a-a83f-a944fbf126d0')
+	);
+	assert.ok(
+		fixtureItem?.includes('<hub:bodyExcerpt>User content stays unchanged.</hub:bodyExcerpt>')
+	);
+	assert.ok(
+		fixtureItem?.includes(
+			'<description>Test user extensions and project page assets.</description>'
+		)
+	);
+	assert.ok(Buffer.byteLength(rss) <= 2 * 1024 * 1024);
 	const home = await readFile(path.join(fixture, 'build/index.html'), 'utf8');
 	assert.equal((home.match(/data-user-extension="preserved"/g) ?? []).length, 1);
 	assert.match(home, /name="google-site-verification" content="preservation-fixture"/);
