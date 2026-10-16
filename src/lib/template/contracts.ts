@@ -2,6 +2,7 @@ import type { Component } from 'svelte';
 import type { Locale, UiCopy } from '$lib/i18n';
 import type { SiteConfig } from '$lib/site';
 import type { BlogPost, PostSummary } from '$lib/server/content';
+import type { RelatedPanelConfig } from './related-panel';
 
 /** Public theme/extension contract. Change incompatibly only with a new API version. */
 export type { Locale, UiCopy, SiteConfig, BlogPost, PostSummary };
@@ -35,6 +36,7 @@ export interface ArticleController {
 }
 
 export interface ArticlePageProps {
+	relatedPanel?: RelatedPanelConfig | null;
 	locale: Locale;
 	site: SiteConfig;
 	ui: UiCopy;

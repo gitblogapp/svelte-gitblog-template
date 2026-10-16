@@ -3,9 +3,11 @@
 	import { getUiCopy, type Locale } from '$lib/i18n';
 	import { getSiteConfig } from '$lib/site';
 	import type { BlogPost, PostSummary } from '$lib/server/content';
+	import type { RelatedPanelConfig } from '$lib/template/related-panel';
 
 	interface Props {
 		data: {
+			relatedPanel?: RelatedPanelConfig | null;
 			locale: Locale;
 			post: BlogPost;
 			availableLocales: Locale[];
@@ -21,6 +23,7 @@
 </script>
 
 <LocalizedArticlePage
+	relatedPanel={data.relatedPanel}
 	{locale}
 	{site}
 	{ui}

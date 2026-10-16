@@ -67,6 +67,18 @@ User content stays unchanged.
 		path.join(fixture, 'static/uploads/preservation-fixture.svg'),
 		'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>'
 	);
+	await writeFile(
+		path.join(fixture, 'content/posts/related-fixture.md'),
+		`---
+id: 7a80f00a-6b21-4cb7-9057-c7487c6a1c8e
+title: Related fixture
+description: Another article in this blog.
+date: 2026-01-02
+published: true
+---
+Another article in this blog.
+`
+	);
 	const protectedPaths = [
 		'content',
 		'static',
@@ -83,6 +95,11 @@ User content stays unchanged.
 			SITE_BASE_PATH: '/preview',
 			PUBLIC_SITE_URL: 'https://example.com/preview',
 			PUBLIC_SITE_REPOSITORY: 'fixture/blog',
+			GITHUB_REPOSITORY: 'fixture/current-fork',
+			PUBLIC_HUB_ENABLED: 'true',
+			PUBLIC_HUB_URL: 'https://gitblog.app',
+			PUBLIC_RELATED_ENABLED: 'true',
+			PUBLIC_RELATED_SHOW_THUMBNAIL: 'false',
 			PUBLIC_GOOGLE_SITE_VERIFICATION: 'preservation-fixture'
 		},
 		encoding: 'utf8',
@@ -133,6 +150,13 @@ User content stays unchanged.
 		'utf8'
 	);
 	assert.equal((article.match(/data-user-extension="preserved"/g) ?? []).length, 3);
+	assert.ok(article.includes('class="related-boundary"'));
+	assert.ok(article.indexOf('gitblog-related-panel') > article.indexOf('class="related-grid"'));
+	assert.ok(
+		article.includes('fixture/current-fork'),
+		'Embed uses the fork identity from the build'
+	);
+	assert.match(article, /showThumbnail:false/, 'Thumbnail option reaches the prerendered page');
 	assert.match(article, /data-user-post="32ac91be-2d4a-4e0a-a83f-a944fbf126d0"/);
 	assert.ok(article.indexOf('data-user-extension') < article.indexOf('class="article-content"'));
 	assert.ok(

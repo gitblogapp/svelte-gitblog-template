@@ -432,3 +432,23 @@ Set `PUBLIC_SITE_TITLE` to the display name of your blog, independently of the G
 RSS includes an optional `hub:bodyExcerpt` field containing real article prose, separately from the existing description. The build gathers opening paragraphs until approximately 800 Unicode characters are available, with a maximum of 1,200 including spaces and paragraph breaks. Short articles stay intact. Section headings are retained with their following prose; article titles (H1), fenced code, images, tables, and raw HTML are skipped. Long paragraphs are cut at a sentence boundary when possible. Content files are not rewritten. The field is XML-escaped plain text; consumers must never execute it as HTML.
 
 The full feed stays within the hub's 2 MiB limit by budgeting excerpt bytes per article. An excerpt may be shortened or omitted when space is limited; published articles are never removed from the feed to make room. Existing blogs receive this feature after updating and deploying the template; the hub must also support the new field. Run `bun run test:body-excerpt` for extraction checks and `bun run test:template` for the built RSS integration check.
+
+### GitBlog related article panel
+
+Article pages load the independently deployed GitBlog Related SDK from
+`PUBLIC_HUB_URL/related/v1/index.js` (default: `https://gitblog.app`). The panel
+appears directly after the existing `.related-boundary` list. It recommends public
+GitBlog posts using tags, categories, and indexed article text, in the language of
+the article being viewed. The original post UUID and the same repository identity
+as the RSS manifest are sent to the API; GitHub Actions uses `GITHUB_REPOSITORY`,
+with `PUBLIC_SITE_REPOSITORY` as the local fallback.
+
+`PUBLIC_RELATED_ENABLED=false` disables the panel, and
+`PUBLIC_RELATED_SHOW_THUMBNAIL=false` hides thumbnails. Both default to `true`.
+Disabling `PUBLIC_HUB_ENABLED` also disables the panel. Theme changes follow the
+blog's light/dark setting. Empty results, unindexed posts, unsupported legacy ULID
+post IDs, and service failures leave no empty panel or heading. The SDK is loaded
+in the browser; article builds do not call the recommendation API.
+
+Custom themes can render `GitBlogRelated` with `config={relatedPanel}`,
+`postId={post.id}`, and `lang={post.locale}` from `ArticlePageProps`.
