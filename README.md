@@ -159,6 +159,14 @@ After a successful Pages deployment, `deploy.yml` sends `POST /v1/ingestion/depl
 
 For a project Pages repository, the build reads `GITHUB_REPOSITORY` and sets the base path automatically. The base path stays empty for a user or organization root Pages repository.
 
+### SEO for translated posts
+
+Every published language version has its own self-referencing canonical URL. The HTML head and `sitemap.xml` share the same reciprocal `hreflang` links, including the page itself and an `x-default` link to the source article. Only published, configured translations are listed. Unpublishing a source article also removes any leftover translations from the generated pages, feeds, and sitemap.
+
+Language codes follow the configured audience: `en` remains generic English, `en-gb` becomes `en-GB`, and `zh-hans` / `zh-hant` retain their script distinctions. Article URLs encode the filename slug and retain the deployment's project path. Sitemap `lastmod`, structured data `dateModified`, and Open Graph modification time use `updated` when present; a newer translation `translatedAt` takes precedence for that translation. Builds do not invent modification times.
+
+Run `bun run test:seo` to verify the generated HTML and XML for project Pages and root/custom-domain deployments. This regression check also runs inside `bun run update:check`. Existing blogs receive these changes after applying the template update in Studio and successfully redeploying.
+
 ### Google Search registration
 
 A GitHub project Pages site is deployed under `https://<owner>.github.io/<repository>/`. Search crawlers only treat `https://<owner>.github.io/robots.txt` as the standard host-level robots file, so submit the sitemap directly through Google Search Console.

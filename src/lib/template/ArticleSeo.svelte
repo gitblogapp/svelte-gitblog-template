@@ -1,19 +1,11 @@
 <script lang="ts">
 	import SeoLinks from '$lib/components/SeoLinks.svelte';
-	import { toPostPath } from '$lib/routes';
-	import { toAbsoluteUrl, toAlternateLinks, toJsonLdScript, toXDefaultUrl } from '$lib/seo';
+	import { toAbsoluteUrl, toJsonLdScript, toPostSeoLinks } from '$lib/seo';
 	import type { ArticlePageProps } from './contracts';
 	let { locale, site, post, availableLocales }: ArticlePageProps = $props();
-	const canonicalPath = $derived(toPostPath(locale, post.slug));
-	const canonicalUrl = $derived(toAbsoluteUrl(site, canonicalPath));
-	const alternateLinks = $derived(
-		toAlternateLinks(site, availableLocales, (alternateLocale) =>
-			toPostPath(alternateLocale, post.slug)
-		)
-	);
-	const xDefaultUrl = $derived(
-		toXDefaultUrl(site, (postLocale) => toPostPath(postLocale, post.slug))
-	);
+	const seo = $derived(toPostSeoLinks(site, locale, post.slug, availableLocales));
+	const canonicalUrl = $derived(seo.canonicalUrl);
+	const modifiedDate = $derived(post.updated ?? post.date);
 	const coverUrl = $derived(post.cover ? toAbsoluteUrl(site, post.cover) : null);
 	const jsonLd = $derived(
 		toJsonLdScript({
@@ -23,7 +15,7 @@
 			description: post.description,
 			image: coverUrl ? [coverUrl] : undefined,
 			datePublished: post.date,
-			dateModified: post.date,
+			dateModified: modifiedDate,
 			articleSection: post.category,
 			keywords: post.tags,
 			inLanguage: site.language,
@@ -53,7 +45,7 @@
 	<meta property="og:description" content={post.description} />
 	<meta property="og:url" content={canonicalUrl} />
 	<meta property="article:published_time" content={post.date} />
-	<meta property="article:modified_time" content={post.date} />
+	<meta property="article:modified_time" content={modifiedDate} />
 	<meta property="article:author" content={site.author} />
 	<meta property="article:section" content={post.category} />
 	{#each post.tags as tag (tag)}
@@ -84,4 +76,4 @@
 	{@html jsonLd}
 </svelte:head>
 
-<SeoLinks {canonicalUrl} {alternateLinks} {xDefaultUrl} />
+<SeoLinks {...seo} />

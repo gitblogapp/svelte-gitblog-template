@@ -25,6 +25,7 @@
 		"test:preservation": "bun ./tests/test-preservation.mjs",
 		"test:extensions": "bun ./tests/test-extensions.ts",
 		"update:check": "bun ./scripts/validate-update.mjs",
+		"test:seo": "bun ./tests/test-translated-seo.mjs",
 		"test:template": "bun ./tests/test-template-integration.mjs",
 		"test:history": "PYTHONPATH=scripts/history python3 -m unittest discover -s tests/history -p 'test_*.py' -v",
 		"test:analytics": "bun ./tests/test-analytics.ts",

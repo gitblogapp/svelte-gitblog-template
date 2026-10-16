@@ -69,6 +69,7 @@ type Frontmatter = {
 	description?: string;
 	date?: string | Date;
 	updated?: string | Date;
+	translatedAt?: string | Date;
 	published?: boolean;
 	category?: string;
 	tags?: string[] | string;
@@ -230,7 +231,7 @@ const parsePost = (
 		throw new Error(`Invalid date in ${path}: ${date}`);
 	}
 
-	const updated =
+	let updated =
 		frontmatter.updated instanceof Date
 			? frontmatter.updated.toISOString()
 			: frontmatter.updated
@@ -239,6 +240,12 @@ const parsePost = (
 
 	if (updated && Number.isNaN(Date.parse(updated))) {
 		throw new Error(`Invalid updated date in ${path}: ${updated}`);
+	}
+
+	// A regenerated translation changes its own page even if the source date stays the same.
+	if (locale !== sourceLocale && frontmatter.translatedAt) {
+		const translatedAt = new Date(frontmatter.translatedAt).toISOString();
+		if (Date.parse(translatedAt) > Date.parse(updated ?? date)) updated = translatedAt;
 	}
 
 	return {
@@ -302,6 +309,9 @@ for (const [path, source] of Object.entries(translatedPostFiles)) {
 	if (!sourcePost) {
 		throw new Error(`Translated post ${path} does not have a matching source post`);
 	}
+
+	// A stale published translation must not expose a source post that was unpublished.
+	if (!sourcePost.published) continue;
 
 	const posts = postsByLocale.get(locale) ?? [];
 	posts.push(parsePost(path, source, locale, sourcePost.id));

@@ -1,7 +1,7 @@
 import { getConfiguredLocales, sourceLocale } from '$lib/locales';
-import { toHomePath, toPostPath } from '$lib/routes';
+import { toHomePath } from '$lib/routes';
 import { getSiteConfig } from '$lib/site';
-import { toAbsoluteUrl, toAlternateLinks } from '$lib/seo';
+import { toAbsoluteUrl, toAlternateLinks, toPostSeoLinks } from '$lib/seo';
 import { getAllPosts, getPostLocales } from '$lib/server/content';
 import { createXmlResponse, escapeXml } from '$lib/server/xml';
 
@@ -23,7 +23,7 @@ type SitemapEntry = {
 	alternates?: AlternateLink[];
 };
 
-const formatLastmod = (date: string) => new Date(date).toISOString().slice(0, 10);
+const formatLastmod = (date: string) => new Date(date).toISOString();
 
 const renderAlternates = (alternates: AlternateLink[] = []) =>
 	alternates
@@ -64,20 +64,22 @@ export const GET = () => {
 	for (const locale of locales) {
 		for (const post of getAllPosts(locale)) {
 			const alternateLocales = getPostLocales(post.slug);
-			const alternates = toAlternateLinks(siteConfig, alternateLocales, (alternateLocale) =>
-				toPostPath(alternateLocale, post.slug)
-			);
+			const {
+				canonicalUrl,
+				alternateLinks: alternates,
+				xDefaultUrl
+			} = toPostSeoLinks(siteConfig, locale, post.slug, alternateLocales);
 
-			if (alternateLocales.includes(sourceLocale)) {
+			if (xDefaultUrl) {
 				alternates.push({
 					hreflang: 'x-default',
-					href: toAbsoluteUrl(siteConfig, toPostPath(sourceLocale, post.slug))
+					href: xDefaultUrl
 				});
 			}
 
 			entries.push({
-				loc: toAbsoluteUrl(siteConfig, toPostPath(locale, post.slug)),
-				lastmod: formatLastmod(post.date),
+				loc: canonicalUrl,
+				lastmod: formatLastmod(post.updated ?? post.date),
 				changefreq: 'weekly',
 				priority: locale === sourceLocale ? '0.8' : '0.7',
 				alternates

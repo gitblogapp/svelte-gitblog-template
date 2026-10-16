@@ -1,0 +1,166 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { changedPaths, snapshotPaths } from '../scripts/lib/preservation.mjs';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
+const fixture = await mkdtemp(path.join(os.tmpdir(), 'gitblog-translated-seo-'));
+const excluded = new Set(['.git', 'node_modules', '.svelte-kit', 'build']);
+const locales = ['ko', 'en', 'en-gb', 'zh', 'zh-hans', 'zh-hant'];
+const tags = ['ko', 'en', 'en-GB', 'zh', 'zh-Hans', 'zh-Hant'];
+const slug = '한글 공백 & 100%';
+const postDate = '2026-01-01T01:00:00.000Z';
+const updated = '2026-02-02T02:00:00.000Z';
+const translatedAt = '2026-03-03T03:00:00.000Z';
+const decode = (value) => value.replaceAll('&amp;', '&').replaceAll('&quot;', '"');
+const attributes = (tag) =>
+	Object.fromEntries(
+		[...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, key, value]) => [key, decode(value)])
+	);
+const links = (html) => [...html.matchAll(/<link\b[^>]*>/g)].map(([tag]) => attributes(tag));
+const alternates = (items) =>
+	Object.fromEntries(
+		items.filter((link) => link.hreflang).map((link) => [link.hreflang, link.href])
+	);
+const writePost = async (locale, name, id, extra = '') => {
+	const dir = path.join(
+		fixture,
+		locale === 'ko' ? 'content/posts' : `content/translations/${locale}/posts`
+	);
+	await mkdir(dir, { recursive: true });
+	await writeFile(
+		path.join(dir, `${name}.md`),
+		`---\nid: ${id}\ntitle: SEO ${locale}\ndescription: Translated SEO fixture\ndate: ${postDate}\nupdated: ${updated}\n${extra}\n---\n## SEO fixture\n\nPublished article in ${locale}.\n`
+	);
+};
+try {
+	await cp(root, fixture, {
+		recursive: true,
+		filter: (source) =>
+			!path
+				.relative(root, source)
+				.split(path.sep)
+				.some((part) => excluded.has(part))
+	});
+	await symlink(path.join(root, 'node_modules'), path.join(fixture, 'node_modules'), 'dir');
+	await rm(path.join(fixture, 'content'), { recursive: true, force: true });
+	for (const locale of locales) {
+		await writePost(
+			locale,
+			slug,
+			'9bd340f8-ec5a-40a8-9ed8-dc05703a3cf0',
+			locale === 'ko' ? '' : `translatedAt: ${translatedAt}`
+		);
+		await writePost(
+			locale,
+			'unpublished-source',
+			'0e7d9625-88ce-4f47-9a86-8cf09ab9021a',
+			`published: ${locale !== 'ko'}`
+		);
+	}
+	await writePost('ko', 'source-only', 'c914d46c-c694-46f2-8283-df993e917b03');
+	await writePost('fr', slug, '9bd340f8-ec5a-40a8-9ed8-dc05703a3cf0', 'published: false');
+	await writePost('de', slug, '9bd340f8-ec5a-40a8-9ed8-dc05703a3cf0'); // Not configured.
+	const protectedPaths = [
+		'content',
+		'static',
+		'src/lib/theme',
+		'src/lib/extensions',
+		'.env.production'
+	];
+	const before = await snapshotPaths(fixture, protectedPaths);
+	for (const base of ['/preview', '']) {
+		const site = `https://example.com${base}`;
+		// Force a fresh prerender when switching between project Pages and a root/custom domain.
+		for (const dir of ['.svelte-kit', 'build'])
+			await rm(path.join(fixture, dir), { recursive: true, force: true });
+		const result = spawnSync('bun', ['run', 'build'], {
+			cwd: fixture,
+			env: {
+				...process.env,
+				SITE_BASE_PATH: base,
+				PUBLIC_SITE_URL: site,
+				PUBLIC_SITE_REPOSITORY: 'fixture/blog',
+				PUBLIC_SOURCE_LOCALE: 'ko',
+				PUBLIC_TRANSLATION_LOCALES: [...locales.slice(1), 'ja', 'fr'].join(',')
+			},
+			encoding: 'utf8',
+			maxBuffer: 10 * 1024 * 1024
+		});
+		assert.equal(result.status, 0, result.error?.message ?? `${result.stdout}\n${result.stderr}`);
+		const sitemap = await readFile(path.join(fixture, 'build/sitemap.xml'), 'utf8');
+		assert.match(sitemap, /xmlns:xhtml="http:\/\/www.w3.org\/1999\/xhtml"/);
+		assert.ok(!sitemap.includes('unpublished-source'));
+		const entries = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, xml]) => ({
+			url: decode(xml.match(/<loc>(.*?)<\/loc>/)[1]),
+			lastmod: xml.match(/<lastmod>(.*?)<\/lastmod>/)?.[1],
+			alternates: alternates(
+				[...xml.matchAll(/<xhtml:link\b[^>]*>/g)].map(([tag]) => attributes(tag))
+			)
+		}));
+		assert.equal(entries.length, 8 + locales.length + 1); // Homes, translated cluster, source-only.
+		assert.equal(new Set(entries.map((entry) => entry.url)).size, entries.length);
+		const expected = Object.fromEntries(
+			locales.map((locale, index) => [
+				tags[index],
+				`${site}/${locale === 'ko' ? '' : `${locale}/`}blog/${encodeURIComponent(slug)}/`
+			])
+		);
+		expected['x-default'] = expected.ko;
+		for (const entry of entries) {
+			assert.ok(entry.url.startsWith(`${site}/`));
+			const relative = decodeURIComponent(new URL(entry.url).pathname.slice(base.length + 1));
+			const html = await readFile(path.join(fixture, 'build', relative, 'index.html'), 'utf8');
+			const head = html.match(/<head>([\s\S]*?)<\/head>/)[1];
+			const htmlLinks = links(head);
+			assert.deepEqual(
+				htmlLinks.filter((link) => link.rel === 'canonical').map((link) => link.href),
+				[entry.url]
+			);
+			assert.deepEqual(
+				alternates(htmlLinks),
+				entry.alternates,
+				'HTML and XML alternate sets must agree'
+			);
+			for (const alternate of Object.values(entry.alternates)) {
+				const target = entries.find((candidate) => candidate.url === alternate);
+				assert.ok(target, `Alternate must have a published page: ${alternate}`);
+				assert.deepEqual(target.alternates, entry.alternates, 'Alternates must be reciprocal');
+			}
+			if (relative.includes('/blog/') || relative.startsWith('blog/')) {
+				const jsonLd = JSON.parse(
+					head.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]
+				);
+				assert.equal(jsonLd.url, entry.url);
+				assert.equal(jsonLd.mainEntityOfPage['@id'], entry.url);
+				assert.equal(jsonLd.datePublished, postDate);
+				assert.equal(jsonLd.dateModified, entry.lastmod);
+				const isSource = relative.startsWith('blog/');
+				assert.equal(entry.lastmod, isSource ? updated : translatedAt);
+				assert.ok(head.includes(`property="article:modified_time" content="${entry.lastmod}"`));
+				assert.ok(html.includes(`<html lang="${jsonLd.inLanguage}">`));
+				if (relative.includes('source-only'))
+					assert.deepEqual(entry.alternates, { ko: entry.url, 'x-default': entry.url });
+				else assert.deepEqual(entry.alternates, expected);
+			}
+		}
+		for (const locale of [...locales, 'ja', 'fr']) {
+			const prefix = locale === 'ko' ? '' : `${locale}/`;
+			const rss = await readFile(path.join(fixture, `build/${prefix}rss.xml`), 'utf8');
+			assert.ok(!rss.includes('unpublished-source'));
+			await assert.rejects(
+				readFile(path.join(fixture, `build/${prefix}blog/unpublished-source/index.html`)),
+				{ code: 'ENOENT' }
+			);
+		}
+		console.log(
+			`Translated SEO passed (${base || 'root'}): self canonicals, reciprocal HTML/XML alternates, generic/region/script tags, timestamps, escaped slugs, missing/draft translations and unpublished sources.`
+		);
+	}
+	assert.deepEqual(changedPaths(before, await snapshotPaths(fixture, protectedPaths)), []);
+} finally {
+	await rm(fixture, { recursive: true, force: true });
+}

@@ -4,61 +4,47 @@ export type Locale = string;
 
 type LocaleMetadata = {
 	label: string;
-	languageTag: string;
 };
 
 const localeMetadata: Record<string, LocaleMetadata> = {
 	ar: {
-		label: 'AR',
-		languageTag: 'ar'
+		label: 'AR'
 	},
 	de: {
-		label: 'DE',
-		languageTag: 'de'
+		label: 'DE'
 	},
 	en: {
-		label: 'EN',
-		languageTag: 'en-US'
+		label: 'EN'
 	},
 	es: {
-		label: 'ES',
-		languageTag: 'es'
+		label: 'ES'
 	},
 	fr: {
-		label: 'FR',
-		languageTag: 'fr'
+		label: 'FR'
 	},
 	it: {
-		label: 'IT',
-		languageTag: 'it'
+		label: 'IT'
 	},
 	ja: {
-		label: 'JA',
-		languageTag: 'ja'
+		label: 'JA'
 	},
 	ko: {
-		label: 'KO',
-		languageTag: 'ko-KR'
+		label: 'KO'
 	},
 	pt: {
-		label: 'PT',
-		languageTag: 'pt-PT'
+		label: 'PT'
 	},
 	'pt-br': {
-		label: 'PT-BR',
-		languageTag: 'pt-BR'
+		label: 'PT-BR'
 	},
 	zh: {
-		label: 'ZH',
-		languageTag: 'zh-CN'
+		label: 'ZH'
 	},
 	'zh-hans': {
-		label: 'ZH',
-		languageTag: 'zh-CN'
+		label: 'ZH'
 	},
 	'zh-hant': {
-		label: 'ZH-TW',
-		languageTag: 'zh-TW'
+		label: 'ZH-TW'
 	}
 };
 
@@ -106,18 +92,15 @@ const getLocaleMetadata = (locale: Locale): LocaleMetadata => {
 	return (
 		localeMetadata[normalized] ??
 		localeMetadata[base] ?? {
-			label: normalized.toUpperCase(),
-			languageTag: normalized
+			label: normalized.toUpperCase()
 		}
 	);
 };
 
-export const getLanguageTag = (locale: Locale): string => getLocaleMetadata(locale).languageTag;
+// Preserve configured language, region, and script instead of inventing a country target.
+export const getLanguageTag = (locale: Locale): string =>
+	Intl.getCanonicalLocales(normalizeLocale(locale))[0];
 
 export const getLocaleLabel = (locale: Locale): string => getLocaleMetadata(locale).label;
 
-export const getHreflang = (locale: Locale): string => {
-	const languageTag = getLanguageTag(locale);
-
-	return languageTag === '' ? locale : languageTag;
-};
+export const getHreflang = getLanguageTag;

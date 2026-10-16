@@ -1,4 +1,5 @@
 import type { SiteConfig } from '$lib/site';
+import { toPostPath } from '$lib/routes';
 import { getHreflang, sourceLocale, type Locale } from '$lib/locales';
 
 type SiteUrlConfig = Pick<SiteConfig, 'url'>;
@@ -38,3 +39,19 @@ const stringifyJsonLd = (value: unknown) => JSON.stringify(value).replaceAll('<'
 
 export const toJsonLdScript = (value: unknown) =>
 	`<script type="application/ld+json">${stringifyJsonLd(value)}</script>`;
+
+// HTML and XML must advertise exactly the same published translation cluster.
+export const toPostSeoLinks = (
+	site: SiteUrlConfig,
+	locale: Locale,
+	slug: string,
+	availableLocales: Locale[]
+) => ({
+	canonicalUrl: toAbsoluteUrl(site, toPostPath(locale, slug)),
+	alternateLinks: toAlternateLinks(site, availableLocales, (alternateLocale) =>
+		toPostPath(alternateLocale, slug)
+	),
+	xDefaultUrl: availableLocales.includes(sourceLocale)
+		? toXDefaultUrl(site, (postLocale) => toPostPath(postLocale, slug))
+		: null
+});

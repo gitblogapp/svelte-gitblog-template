@@ -25,6 +25,7 @@ try {
 	// No ID generation, translation, pruning, GitHub writes, or deployment.
 	await run('check');
 	await run('build');
+	await run('test:seo');
 } catch (error) {
 	console.error(error.message);
 	process.exitCode = 1;
