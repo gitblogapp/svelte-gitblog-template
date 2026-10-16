@@ -827,6 +827,11 @@ html.dark .archive-card:hover {
 }
 
 /* global overrides just for the article HTML contents mapped to the design system */
+.article-content img {
+	max-width: 100%;
+	height: auto;
+}
+
 .article-content p {
 	margin-bottom: 1.5rem;
 }
