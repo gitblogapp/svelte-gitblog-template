@@ -445,6 +445,9 @@ with `PUBLIC_SITE_REPOSITORY` as the local fallback.
 
 `PUBLIC_RELATED_ENABLED=false` disables the panel, and
 `PUBLIC_RELATED_SHOW_THUMBNAIL=false` hides thumbnails. Both default to `true`.
+`PUBLIC_RELATED_LIMIT=4` sets the maximum number of recommendations (1–8, default 4).
+Fewer posts may appear when there are fewer matching articles.
+Theme changes update the existing iframe without reloading the recommendation API.
 Disabling `PUBLIC_HUB_ENABLED` also disables the panel. Theme changes follow the
 blog's light/dark setting. Empty results, unindexed posts, unsupported legacy ULID
 post IDs, and service failures leave no empty panel or heading. The SDK is loaded

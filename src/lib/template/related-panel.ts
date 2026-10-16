@@ -2,6 +2,7 @@ export interface RelatedPanelConfig {
 	repo: string;
 	baseUrl: string;
 	showThumbnail: boolean;
+	limit: number;
 }
 
 const disabled = (value?: string) =>
@@ -12,6 +13,7 @@ export function createRelatedPanelConfig(input: {
 	hubEnabled: boolean;
 	enabled?: string;
 	showThumbnail?: string;
+	limit?: string;
 	hubUrl?: string;
 }): RelatedPanelConfig | null {
 	if (!input.hubEnabled || disabled(input.enabled)) return null;
@@ -30,7 +32,8 @@ export function createRelatedPanelConfig(input: {
 		return {
 			repo: input.repository,
 			baseUrl: `${hub.origin}/related/v1/`,
-			showThumbnail: !disabled(input.showThumbnail)
+			showThumbnail: !disabled(input.showThumbnail),
+			limit: /^[1-8]$/.test(input.limit?.trim() ?? '') ? Number(input.limit!.trim()) : 4
 		};
 	} catch {
 		return null;

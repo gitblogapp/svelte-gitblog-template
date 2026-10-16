@@ -100,6 +100,7 @@ Another article in this blog.
 			PUBLIC_HUB_URL: 'https://gitblog.app',
 			PUBLIC_RELATED_ENABLED: 'true',
 			PUBLIC_RELATED_SHOW_THUMBNAIL: 'false',
+			PUBLIC_RELATED_LIMIT: '6',
 			PUBLIC_GOOGLE_SITE_VERIFICATION: 'preservation-fixture'
 		},
 		encoding: 'utf8',
@@ -157,6 +158,7 @@ Another article in this blog.
 		'Embed uses the fork identity from the build'
 	);
 	assert.match(article, /showThumbnail:false/, 'Thumbnail option reaches the prerendered page');
+	assert.match(article, /limit:6/, 'Recommendation limit reaches the prerendered page');
 	assert.match(article, /data-user-post="32ac91be-2d4a-4e0a-a83f-a944fbf126d0"/);
 	assert.ok(article.indexOf('data-user-extension') < article.indexOf('class="article-content"'));
 	assert.ok(

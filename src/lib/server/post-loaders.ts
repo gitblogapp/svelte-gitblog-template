@@ -26,6 +26,7 @@ export const loadPostPage = (locale: Locale, slug: string) => {
 			hubEnabled: hub.enabled,
 			enabled: env.PUBLIC_RELATED_ENABLED,
 			showThumbnail: env.PUBLIC_RELATED_SHOW_THUMBNAIL,
+			limit: env.PUBLIC_RELATED_LIMIT,
 			hubUrl: env.PUBLIC_HUB_URL
 		}),
 		availableLocales: getPostLocales(slug),
