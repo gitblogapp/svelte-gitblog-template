@@ -18,28 +18,44 @@
 	let {
 		config,
 		postId,
-		lang
+		lang,
+		root,
+		placement = 'inline'
 	}: {
 		config?: RelatedPanelConfig | null;
 		postId: string;
 		lang: string;
+		root?: HTMLElement;
+		placement?: 'inline' | 'article';
 	} = $props();
 	let container = $state<HTMLDivElement>();
-	let ready = $state(false);
 	const configured = $derived(
 		config && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(postId)
 	);
 
 	$effect(() => {
-		const target = container;
 		const settings = config;
 		const id = postId;
 		const language = lang;
-		if (!target || !settings || !configured) return;
+		if (!settings || !configured) return;
+		let target = container;
+		const managed = placement === 'article';
+		if (managed) {
+			if (!root || root.querySelector('.gitblog-related-panel')) return;
+			// The theme is preserved during updates. Insert only our own SDK host into its outlet.
+			target = document.createElement('div');
+			target.className = 'gitblog-related-panel';
+			target.setAttribute('data-pagefind-ignore', '');
+			const boundary = root.querySelector('.related-boundary');
+			if (boundary) boundary.after(target);
+			else (root.querySelector('.article-center, article') ?? root).append(target);
+		}
+		if (!target) return;
+		const host = target;
 		let disposed = false;
 		let panel: Panel | undefined;
 		let observer: MutationObserver | undefined;
-		ready = false;
+		host.style.marginTop = '0';
 		const getTheme = (): Theme =>
 			document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 		const moduleUrl = `${settings.baseUrl}index.js`;
@@ -48,14 +64,14 @@
 			.then((sdk) => {
 				if (disposed) return;
 				let theme = getTheme();
-				panel = sdk.mount(target, {
+				panel = sdk.mount(host, {
 					...settings,
 					postId: id,
 					lang: language,
 					theme,
 					loading: 'lazy',
 					onState: (state) => {
-						if (!disposed) ready = state === 'ready';
+						if (!disposed) host.style.marginTop = state === 'ready' ? '3rem' : '0';
 					}
 				});
 				observer = new MutationObserver(() => {
@@ -71,22 +87,17 @@
 			})
 			.catch(() => {
 				// A blocked or unavailable recommendation service must not interrupt the article.
-				if (!disposed) ready = false;
+				if (!disposed) host.style.marginTop = '0';
 			});
 		return () => {
 			disposed = true;
 			observer?.disconnect();
 			panel?.destroy();
+			if (managed) host.remove();
 		};
 	});
 </script>
 
-{#if configured}
-	<div class="gitblog-related-panel" class:ready data-pagefind-ignore bind:this={container}></div>
+{#if configured && placement === 'inline'}
+	<div class="gitblog-related-panel" data-pagefind-ignore bind:this={container}></div>
 {/if}
-
-<style>
-	.gitblog-related-panel.ready {
-		margin-top: 3rem;
-	}
-</style>

@@ -450,5 +450,8 @@ blog's light/dark setting. Empty results, unindexed posts, unsupported legacy UL
 post IDs, and service failures leave no empty panel or heading. The SDK is loaded
 in the browser; article builds do not call the recommendation API.
 
-Custom themes can render `GitBlogRelated` with `config={relatedPanel}`,
-`postId={post.id}`, and `lang={post.locale}` from `ArticlePageProps`.
+The managed article wrapper inserts the panel after `.related-boundary`, or at
+the end of the article when that list is absent. Existing themes and environment
+files stay unchanged during Studio updates; the panel and thumbnails are enabled
+by default even when the new settings are absent. A theme that already renders
+`GitBlogRelated` explicitly keeps its own placement without a duplicate panel.

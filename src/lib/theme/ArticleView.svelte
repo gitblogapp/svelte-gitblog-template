@@ -4,7 +4,6 @@
 	import ArticleTableOfContents from '$lib/components/ArticleTableOfContents.svelte';
 	import GiscusComments from '$lib/components/GiscusComments.svelte';
 	import RelatedPosts from '$lib/components/RelatedPosts.svelte';
-	import GitBlogRelated from '$lib/components/GitBlogRelated.svelte';
 	import ArticleBody from '$lib/template/ArticleBody.svelte';
 	import ExtensionPoint from '$lib/template/ExtensionPoint.svelte';
 	import type { ArticleController } from '$lib/template/contracts';
@@ -15,7 +14,6 @@
 		ui,
 		post,
 		relatedPosts,
-		relatedPanel,
 		article,
 		html,
 		context
@@ -76,7 +74,6 @@
 		{/key}
 
 		<RelatedPosts {locale} {ui} posts={relatedPosts} />
-		<GitBlogRelated config={relatedPanel} postId={post.id} lang={post.locale} />
 	</article>
 
 	<ArticleTableOfContents

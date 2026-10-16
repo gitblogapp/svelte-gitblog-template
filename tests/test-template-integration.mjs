@@ -151,7 +151,7 @@ Another article in this blog.
 	);
 	assert.equal((article.match(/data-user-extension="preserved"/g) ?? []).length, 3);
 	assert.ok(article.includes('class="related-boundary"'));
-	assert.ok(article.indexOf('gitblog-related-panel') > article.indexOf('class="related-grid"'));
+	assert.ok(!article.includes('<iframe'), 'Recommendations mount only after hydration');
 	assert.ok(
 		article.includes('fixture/current-fork'),
 		'Embed uses the fork identity from the build'
