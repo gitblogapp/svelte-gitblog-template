@@ -76,6 +76,7 @@ const siteWithPublicEnv = {
 	footer: getPublicEnv('PUBLIC_SITE_FOOTER'),
 	url: siteUrl,
 	googleSiteVerification: getPublicEnv('PUBLIC_GOOGLE_SITE_VERIFICATION'),
+	bingSiteVerification: getPublicEnv('PUBLIC_BING_SITE_VERIFICATION'),
 	giscusProvider: preferPublicEnvKey('PUBLIC_GISCUS_PROVIDER', 'gitblog'),
 	giscusHost: getPublicEnv('PUBLIC_GISCUS_HOST'),
 	giscusRepo: getPublicEnv('PUBLIC_GISCUS_REPO'),

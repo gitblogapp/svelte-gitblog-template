@@ -88,6 +88,8 @@ try {
 				...process.env,
 				SITE_BASE_PATH: base,
 				PUBLIC_SITE_URL: site,
+				PUBLIC_GOOGLE_SITE_VERIFICATION: 'google-fixture',
+				PUBLIC_BING_SITE_VERIFICATION: exportsEnabled ? 'bing-fixture' : '',
 				PUBLIC_AI_MARKDOWN_ENABLED: String(exportsEnabled),
 				PUBLIC_AI_LLMS_ENABLED: String(exportsEnabled),
 				PUBLIC_AI_OPENAI_TRAINING_ENABLED: 'false',
@@ -142,6 +144,17 @@ try {
 			const relative = decodeURIComponent(new URL(entry.url).pathname.slice(base.length + 1));
 			const html = await readFile(path.join(fixture, 'build', relative, 'index.html'), 'utf8');
 			const head = html.match(/<head>([\s\S]*?)<\/head>/)[1];
+			const verificationTags = [...head.matchAll(/<meta\b[^>]*>/g)].map(([tag]) => attributes(tag));
+			assert.deepEqual(
+				verificationTags.filter((tag) => tag.name === 'msvalidate.01').map((tag) => tag.content),
+				exportsEnabled ? ['bing-fixture'] : []
+			);
+			assert.deepEqual(
+				verificationTags
+					.filter((tag) => tag.name === 'google-site-verification')
+					.map((tag) => tag.content),
+				['google-fixture']
+			);
 			const htmlLinks = links(head);
 			assert.deepEqual(
 				htmlLinks.filter((link) => link.rel === 'canonical').map((link) => link.href),

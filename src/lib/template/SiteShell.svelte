@@ -20,6 +20,9 @@
 	{#if state.site.googleSiteVerification}
 		<meta name="google-site-verification" content={state.site.googleSiteVerification} />
 	{/if}
+	{#if state.site.bingSiteVerification}
+		<meta name="msvalidate.01" content={state.site.bingSiteVerification} />
+	{/if}
 	{#each state.rssLinks as rssLink (rssLink.locale)}
 		<link rel="alternate" type="application/rss+xml" title={rssLink.title} href={rssLink.href} />
 	{/each}

@@ -169,6 +169,25 @@ GitHub 프로젝트 Pages는 `https://<owner>.github.io/<repository>/` 하위 �
 
 독립 도메인이나 `<owner>.github.io` 루트 사이트에 배포하면 생성된 `/robots.txt`가 호스트 루트에 위치하므로 그 안의 사이트맵 선언도 유효합니다. 인증 토큰은 공개 정보이며, Search Console 소유권 확인을 유지하려면 배포된 메타 태그를 제거하지 않습니다.
 
+### Bing 웹마스터 도구 등록
+
+1. [Bing 웹마스터 도구](https://www.bing.com/webmasters/)에 프로젝트 경로를 포함한 블로그 전체 URL을 추가하고 HTML 메타 태그 인증을 선택합니다.
+2. 태그 전체가 아닌 `content` 값만 **Studio → 블로그 설정 → 소셜 링크와 검색 → Bing 사이트 소유권 확인 값**에 입력하거나 `.env.production`에 저장합니다.
+
+   ```sh
+   PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
+   ```
+
+   업데이트한 템플릿을 배포하면 모든 페이지에 다음 태그가 생성됩니다.
+
+   ```html
+   <meta name="msvalidate.01" content="your-bing-verification-token" />
+   ```
+
+3. 배포 후 Bing 웹마스터 도구에서 소유권을 확인하고 블로그의 `sitemap.xml`을 제출합니다. 프로젝트 Pages라면 `https://<owner>.github.io/<repository>/sitemap.xml`입니다.
+
+Google과 Bing 확인 값은 독립적입니다. 태그를 유지하려면 값을 보관하고, 비우면 태그가 생성되지 않습니다. 기존 블로그는 템플릿 업데이트를 적용하고 배포해야 설정이 반영됩니다.
+
 로컬에서도 base path를 강제로 맞춰 보고 싶다면 아래처럼 빌드할 수 있습니다.
 
 ```sh
@@ -260,6 +279,7 @@ PUBLIC_SITE_OWNER="Your Name"
 PUBLIC_SITE_FOOTER="Built with SvelteKit."
 PUBLIC_SITE_URL=https://example.com
 PUBLIC_GOOGLE_SITE_VERIFICATION=your-verification-token
+PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
 PUBLIC_SOCIAL_X_URL=https://x.com/your-handle
 PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ```

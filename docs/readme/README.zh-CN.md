@@ -155,6 +155,25 @@ GitHub 项目 Pages 部署在 `https://<owner>.github.io/<repository>/` 下。�
 
 独立域名或 `<owner>.github.io` 根站点的 `/robots.txt` 位于主机根目录，其中的 sitemap 声明有效。请保留验证标签以维持 Search Console 所有权。
 
+### 注册 Bing 网站管理员工具
+
+1. 在 [Bing 网站管理员工具](https://www.bing.com/webmasters/) 中添加包含项目路径的完整博客 URL，并选择 HTML 元标记验证。
+2. 仅将标记的 `content` 值填写到 **Studio → 博客设置 → 社交链接与搜索 → Bing 网站所有权验证值**，或保存到 `.env.production`，不要粘贴整个标记。
+
+   ```sh
+   PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
+   ```
+
+   部署更新后的模板后，每个页面都会包含：
+
+   ```html
+   <meta name="msvalidate.01" content="your-bing-verification-token" />
+   ```
+
+3. 部署后在 Bing 网站管理员工具中验证所有权，再提交博客的 `sitemap.xml`。项目 Pages 示例：`https://<owner>.github.io/<repository>/sitemap.xml`。
+
+Google 和 Bing 的验证值互相独立。保留该值即可保留验证标记；留空则不生成标记。现有博客需要更新模板并成功部署后，此设置才会生效。
+
 本地测试 base path：
 
 ```sh
@@ -244,6 +263,7 @@ PUBLIC_SITE_OWNER="Your Name"
 PUBLIC_SITE_FOOTER="Built with SvelteKit."
 PUBLIC_SITE_URL=https://example.com
 PUBLIC_GOOGLE_SITE_VERIFICATION=your-verification-token
+PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
 PUBLIC_SOCIAL_X_URL=https://x.com/your-handle
 PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ```

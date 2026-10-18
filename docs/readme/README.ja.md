@@ -155,6 +155,25 @@ GitHub のプロジェクト Pages は `https://<owner>.github.io/<repository>/`
 
 独自ドメインまたは `<owner>.github.io` ルートサイトでは `/robots.txt` がホストルートに配置され、その sitemap 宣言も有効です。Search Console の所有権を維持するため、認証タグは削除しないでください。
 
+### Bing Webmaster Tools への登録
+
+1. [Bing Webmaster Tools](https://www.bing.com/webmasters/) にプロジェクトパスを含むブログの完全な URL を追加し、HTML メタタグによる確認を選択します。
+2. タグ全体ではなく `content` の値だけを **Studio → ブログ設定 → ソーシャルリンクと検索 → Bing サイト所有権の確認値** に入力するか、`.env.production` に保存します。
+
+   ```sh
+   PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
+   ```
+
+   更新したテンプレートをデプロイすると、すべてのページに次のタグが生成されます。
+
+   ```html
+   <meta name="msvalidate.01" content="your-bing-verification-token" />
+   ```
+
+3. デプロイ後に Bing Webmaster Tools で所有権を確認し、ブログの `sitemap.xml` を送信します。プロジェクト Pages の例は `https://<owner>.github.io/<repository>/sitemap.xml` です。
+
+Google と Bing の確認値は独立しています。タグを維持するには値を残してください。空欄の場合はタグを出力しません。既存のブログではテンプレートを更新してデプロイすると設定が反映されます。
+
 ローカルで base path を試す場合：
 
 ```sh
@@ -244,6 +263,7 @@ PUBLIC_SITE_OWNER="Your Name"
 PUBLIC_SITE_FOOTER="Built with SvelteKit."
 PUBLIC_SITE_URL=https://example.com
 PUBLIC_GOOGLE_SITE_VERIFICATION=your-verification-token
+PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
 PUBLIC_SOCIAL_X_URL=https://x.com/your-handle
 PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ```

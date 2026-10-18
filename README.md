@@ -225,6 +225,25 @@ A GitHub project Pages site is deployed under `https://<owner>.github.io/<reposi
 
 On a custom domain or an `<owner>.github.io` root site, the generated `/robots.txt` is at the host root and its sitemap declaration is valid. Keep the verification tag deployed to preserve Search Console ownership.
 
+### Bing Webmaster Tools registration
+
+1. Add your full blog URL (including the project path, if any) to [Bing Webmaster Tools](https://www.bing.com/webmasters/) and choose HTML meta tag verification.
+2. Copy only the tag's `content` value into **Studio → Blog settings → Social links and search → Bing site verification value**, or set it in `.env.production`:
+
+   ```sh
+   PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
+   ```
+
+   After deploying the updated template, every page includes:
+
+   ```html
+   <meta name="msvalidate.01" content="your-bing-verification-token" />
+   ```
+
+3. Verify ownership in Bing Webmaster Tools after deployment, then submit your blog's `sitemap.xml` (for example, `https://<owner>.github.io/<repository>/sitemap.xml`).
+
+Google and Bing verification values are independent. Keep the value to retain the verification tag; leaving it empty omits the tag. Existing blogs need the template update and a successful deployment before this setting takes effect.
+
 To test a base path locally:
 
 ```sh
@@ -316,6 +335,7 @@ PUBLIC_SITE_OWNER="Your Name"
 PUBLIC_SITE_FOOTER="Built with SvelteKit."
 PUBLIC_SITE_URL=https://example.com
 PUBLIC_GOOGLE_SITE_VERIFICATION=your-verification-token
+PUBLIC_BING_SITE_VERIFICATION=your-bing-verification-token
 PUBLIC_SOCIAL_X_URL=https://x.com/your-handle
 PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ```
