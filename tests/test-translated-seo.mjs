@@ -77,7 +77,7 @@ try {
 		// Force a fresh prerender when switching between project Pages and a root/custom domain.
 		for (const dir of ['.svelte-kit', 'build'])
 			await rm(path.join(fixture, dir), { recursive: true, force: true });
-		const result = spawnSync('bun', ['run', 'build'], {
+		const result = spawnSync('npm', ['run', 'build'], {
 			cwd: fixture,
 			env: {
 				...process.env,

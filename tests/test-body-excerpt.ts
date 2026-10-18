@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createBodyExcerpt, bodyExcerptXml } from '../src/lib/server/body-excerpt';
+import { createBodyExcerpt, bodyExcerptXml } from '../src/lib/server/body-excerpt.ts';
 
 assert.equal(
 	createBodyExcerpt(

@@ -14,22 +14,24 @@
 
 ## 本地开发
 
+请安装包含 npm 的 [Node.js](https://nodejs.org/) 24.12 或更高版本。无需安装 Bun。
+
 ```sh
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 Pagefind 会在静态构建完成后生成搜索索引。如需测试搜索功能：
 
 ```sh
-bun run build
-bun run preview
+npm run build
+npm run preview
 ```
 
 如需在本地更新已配置语言的翻译：
 
 ```sh
-DEEPL_API_KEY=your-key bun run translate:content
+DEEPL_API_KEY=your-key npm run translate:content
 ```
 
 ## 内容结构
@@ -100,7 +102,7 @@ tags:
 tags: 'dev, git'
 ```
 
-不要在原文中添加 `locale`、`sourcePath`、`sourceHash`、`translationSchemaVersion`、`translationSource` 或 `translatedAt`。这些字段由翻译脚本生成。请运行 `bun run translate:content` 更新 `content/translations`，不要手动编辑生成文件。
+不要在原文中添加 `locale`、`sourcePath`、`sourceHash`、`translationSchemaVersion`、`translationSource` 或 `translatedAt`。这些字段由翻译脚本生成。请运行 `npm run translate:content` 更新 `content/translations`，不要手动编辑生成文件。
 
 ## 搜索
 
@@ -154,7 +156,7 @@ GitHub 项目 Pages 部署在 `https://<owner>.github.io/<repository>/` 下。�
 本地测试 base path：
 
 ```sh
-SITE_BASE_PATH=blog bun run build
+SITE_BASE_PATH=blog npm run build
 ```
 
 ## 从上游模板更新
@@ -178,9 +180,9 @@ git remote -v
 git fetch upstream
 git switch main
 git merge upstream/main
-bun install --frozen-lockfile
-bun run check
-bun run build
+npm ci
+npm run check
+npm run build
 git push origin main
 ```
 
@@ -251,7 +253,7 @@ PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ## 翻译流程
 
 1. Pages CMS 将原文保存到 `content/posts/*.md`。
-2. GitHub Actions 运行 `bun run translate:content`。
+2. GitHub Actions 运行 `npm run translate:content`。
 3. 仅在翻译缺失、原文哈希变化或 schema 版本变化时调用 DeepL。
 4. 网站 tagline、description 和 footer 会翻译到 `content/translations/<locale>/site.json`，并自动检测每条文案的原语言。
 5. Markdown 正文转换为结构化 XML，并使用 `tag_handling=xml`、`tag_handling_version=v2` 和 `ignore_tags`，以保留标题、列表和代码块。
@@ -318,7 +320,7 @@ PUBLIC_RELEASE_USE_TRANSLATIONS=true
 
 ```sh
 PUBLIC_GISCUS_CATEGORY=Announcements \
-bun run build
+npm run build
 ```
 
 设置步骤：

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { mountPageExtensions, validateExtensions } from '../src/lib/template/extension-runtime';
-import type { BlogExtension, ExtensionContext } from '../src/lib/template/contracts';
+import { mountPageExtensions, validateExtensions } from '../src/lib/template/extension-runtime.ts';
+import type { BlogExtension, ExtensionContext } from '../src/lib/template/contracts.ts';
 
 const calls: string[] = [];
 const context = { pathname: '/blog/first/', locale: 'en' } as ExtensionContext;

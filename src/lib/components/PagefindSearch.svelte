@@ -67,7 +67,7 @@
 		statusMessages = {
 			loading: '검색 인덱스를 불러오는 중입니다.',
 			missingTitle: 'Pagefind 인덱스를 아직 찾지 못했습니다.',
-			missingHint: '로컬에서는 `bun run build` 후 `bun run preview`에서 검색을 확인할 수 있습니다.'
+			missingHint: '로컬에서는 `npm run build` 후 `npm run preview`에서 검색을 확인할 수 있습니다.'
 		}
 	}: Props = $props();
 

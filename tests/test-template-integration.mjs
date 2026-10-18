@@ -88,7 +88,7 @@ Another article in this blog.
 		'.pages.yml'
 	];
 	const before = await snapshotPaths(fixture, protectedPaths);
-	const result = spawnSync('bun', ['run', 'build'], {
+	const result = spawnSync('npm', ['run', 'build'], {
 		cwd: fixture,
 		env: {
 			...process.env,

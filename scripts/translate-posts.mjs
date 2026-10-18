@@ -4,9 +4,15 @@ import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import { readPolicy } from './lib/authoring.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
+if ((await readPolicy(projectRoot)).translationMode === 'manual') {
+	throw new Error(
+		'Manual translation mode: use npm run translate:content to validate without calling DeepL'
+	);
+}
 const sourceDir = path.join(projectRoot, 'content/posts');
 
 loadEnvFile(path.join(projectRoot, '.env.production'));

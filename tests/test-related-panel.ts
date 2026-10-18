@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createRelatedPanelConfig } from '../src/lib/template/related-panel';
+import { createRelatedPanelConfig } from '../src/lib/template/related-panel.ts';
 const input = { repository: 'owner/blog', hubEnabled: true };
 assert.equal(createRelatedPanelConfig(input)?.limit, 4);
 for (const limit of ['1', '4', '8']) {

@@ -103,7 +103,7 @@ try {
 	execFileSync(
 		process.execPath,
 		[
-			'--preload',
+			'--import',
 			path.join(fixture, 'mock-github.mjs'),
 			path.join(fixture, 'scripts/sync-post-releases.mjs')
 		],
@@ -120,6 +120,44 @@ try {
 		payloads
 			.find((payload) => payload.name === filenames[0])
 			.body.includes(encodeURIComponent(filenames[0].slice(0, -3)))
+	);
+
+	// Node must select an existing translation and fall back to the source when absent.
+	await mkdir(path.join(fixture, 'content/translations/en/posts'), { recursive: true });
+	await writeFile(
+		path.join(fixture, 'content/translations/en/posts', filenames[0]),
+		post('Translated release title')
+	);
+	await writeFile(payloadFile, '');
+	execFileSync(
+		process.execPath,
+		[
+			'--import',
+			path.join(fixture, 'mock-github.mjs'),
+			path.join(fixture, 'scripts/sync-post-releases.mjs')
+		],
+		{
+			cwd: fixture,
+			env: {
+				...releaseEnv,
+				RELEASE_USE_TRANSLATIONS: 'true',
+				PUBLIC_SOURCE_LOCALE: 'ko',
+				PUBLIC_RELEASE_LOCALE: 'en'
+			}
+		}
+	);
+	const translatedPayloads = (await readFile(payloadFile, 'utf8'))
+		.trim()
+		.split('\n')
+		.map(JSON.parse);
+	assert.deepEqual(
+		translatedPayloads.map((payload) => payload.name).sort(),
+		['Translated release title', ...filenames.slice(1)].sort()
+	);
+	assert.ok(
+		translatedPayloads
+			.find((payload) => payload.name === 'Translated release title')
+			.body.includes('/en/blog/')
 	);
 
 	await writeFile(path.join(fixture, 'content/posts', filenames[0]), post('Modified Korean post'));

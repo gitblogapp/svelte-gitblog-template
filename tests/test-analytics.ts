@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { analyticsRequest } from '../src/lib/template/analytics';
+import { analyticsRequest } from '../src/lib/template/analytics.ts';
 const config = {
 	repository: 'owner/blog',
 	siteUrl: 'https://owner.github.io/blog',

@@ -17,13 +17,17 @@ const env = Object.fromEntries(
 const run = () =>
 	execFileSync(
 		process.execPath,
-		['--preload', './mock-deepl.mjs', './scripts/translate-posts.mjs'],
+		['--import', './mock-deepl.mjs', './scripts/translate-posts.mjs'],
 		{ cwd: fixture, env, encoding: 'utf8' }
 	);
 try {
 	await mkdir(path.join(fixture, 'content/posts'), { recursive: true });
 	await mkdir(path.join(fixture, 'scripts/lib'), { recursive: true });
 	await copyFile(path.join(root, 'scripts/lib/env.mjs'), path.join(fixture, 'scripts/lib/env.mjs'));
+	await copyFile(
+		path.join(root, 'scripts/lib/authoring.mjs'),
+		path.join(fixture, 'scripts/lib/authoring.mjs')
+	);
 	await copyFile(
 		path.join(root, 'scripts/translate-posts.mjs'),
 		path.join(fixture, 'scripts/translate-posts.mjs')

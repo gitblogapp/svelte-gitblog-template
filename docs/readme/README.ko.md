@@ -14,23 +14,36 @@ SvelteKit 기반 정적 블로그 템플릿입니다. `@sveltejs/adapter-static`
 
 ## 로컬 개발
 
+npm이 포함된 [Node.js](https://nodejs.org/) 24.12 이상을 설치합니다. Bun은 필요하지 않습니다.
+
 ```sh
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 `Pagefind` 검색 인덱스는 정적 빌드 후 생성됩니다. 검색 기능까지 확인하려면 아래 흐름을 사용합니다.
 
 ```sh
-bun run build
-bun run preview
+npm run build
+npm run preview
 ```
 
 등록된 번역 언어 파일까지 로컬에서 갱신하려면 DeepL API 키를 넣고 아래 명령을 실행합니다.
 
 ```sh
-DEEPL_API_KEY=your-key bun run translate:content
+DEEPL_API_KEY=your-key npm run translate:content
 ```
+
+## LLM 작성 하네스
+
+[AGENTS.md](../../AGENTS.md)와 [작성·번역·배포 가이드](../authoring.md)를 읽고
+`npm run author:context`로 시작합니다. `author:status`로 재개할 작업을 확인하고,
+초안 생성 → 원문 작성 → 번역 등록 → 검증 → 배포 → 배포 상태 확인 순서로 진행합니다.
+
+[`.gitblog/authoring.json`](../../.gitblog/authoring.json)의 `translationMode`를 `manual`로
+설정하면 LLM이나 사람이 번역을 작성하며 DeepL 없이 배포할 수 있습니다. 기본값은 기존
+`deepl`입니다. manual 모드에서는 CI가 번역 최신성을 검증하며 번역을 자동 생성·삭제하지 않습니다.
+다국어 페이지와 GitBlog 수집을 위해 `PUBLIC_TRANSLATION_LOCALES`는 유지합니다.
 
 ## 콘텐츠 구조
 
@@ -51,6 +64,7 @@ DEEPL_API_KEY=your-key bun run translate:content
 
 ````markdown
 ---
+id: 2f4ad174-baba-4aa4-89ad-72760aeb2509
 title: SvelteKit 블로그 배포하기
 description: SvelteKit 정적 블로그를 GitHub Pages에 배포하는 과정을 정리합니다.
 date: 2026-07-12T18:00:00
@@ -75,15 +89,17 @@ const message = 'Code blocks are preserved during translation.';
 
 frontmatter 필드는 다음 규칙을 따릅니다.
 
-| 필드          | 필수 | 형식 및 동작                                                                         |
-| ------------- | ---- | ------------------------------------------------------------------------------------ |
-| `title`       | 필수 | 게시글 제목입니다. 목록, 상세 페이지, SEO 메타 정보에 사용됩니다.                    |
-| `description` | 필수 | 게시글 요약입니다. 목록 excerpt와 SEO description에 사용됩니다.                      |
-| `date`        | 필수 | `YYYY-MM-DD` 또는 ISO datetime을 사용합니다. 발행일과 정렬 기준입니다.               |
-| `published`   | 선택 | 기본값은 `true`입니다. `false`이면 빌드 결과에서 제외됩니다.                         |
-| `category`    | 선택 | 기본값은 `Notes`입니다. Pages CMS에서는 `content/categories`에 먼저 등록합니다.      |
-| `tags`        | 선택 | 문자열 배열을 권장합니다. Pages CMS에서는 `content/tags`에 먼저 등록합니다.          |
-| `cover`       | 선택 | `static` 기준 공개 경로입니다. CMS 업로드 이미지는 `/uploads/...` 형식을 사용합니다. |
+| 필드          | 필수 | 형식 및 동작                                                                                     |
+| ------------- | ---- | ------------------------------------------------------------------------------------------------ |
+| `id`          | 필수 | 변경하지 않는 UUID/ULID입니다. 새 글은 `author:new`로 생성합니다. 예시 ID를 재사용하지 않습니다. |
+| `title`       | 필수 | 게시글 제목입니다. 목록, 상세 페이지, SEO 메타 정보에 사용됩니다.                                |
+| `description` | 필수 | 게시글 요약입니다. 목록 excerpt와 SEO description에 사용됩니다.                                  |
+| `date`        | 필수 | `YYYY-MM-DD` 또는 ISO datetime을 사용합니다. 발행일과 정렬 기준입니다.                           |
+| `updated`     | 선택 | 의미 있는 개정의 실제 수정 날짜 또는 ISO datetime입니다.                                         |
+| `published`   | 선택 | 기본값은 `true`입니다. `false`이면 빌드 결과에서 제외됩니다.                                     |
+| `category`    | 선택 | 기본값은 `Notes`입니다. Pages CMS에서는 `content/categories`에 먼저 등록합니다.                  |
+| `tags`        | 선택 | 문자열 배열을 권장합니다. Pages CMS에서는 `content/tags`에 먼저 등록합니다.                      |
+| `cover`       | 선택 | `static` 기준 공개 경로입니다. CMS 업로드 이미지는 `/uploads/...` 형식을 사용합니다.             |
 
 포스트 frontmatter에는 카테고리와 별도로 여러 태그를 둘 수 있습니다. 태그는 `#` 없이 저장하고 화면에도 `dev`처럼 표시됩니다.
 
@@ -102,7 +118,7 @@ tags:
 tags: 'dev, git'
 ```
 
-`locale`, `sourcePath`, `sourceHash`, `translationSchemaVersion`, `translationSource`, `translatedAt`은 번역 스크립트가 생성하는 필드입니다. 원문 게시글에는 직접 추가하지 않습니다. 번역 결과인 `content/translations` 파일도 직접 작성하기보다 `bun run translate:content`로 갱신합니다.
+`locale`, `sourceLocale`, `sourcePath`, `sourceHash`, `translationSchemaVersion`, `translationSource`, `translatedAt`, `translationContentHash`는 도구가 관리하는 번역 필드입니다. 원문에는 추가하지 않습니다. DeepL 모드에서는 `npm run translate:content`로 갱신하고, manual 모드에서는 [작성 가이드](../authoring.md)의 `author:translation`으로 번역을 등록합니다.
 
 ## 검색
 
@@ -156,7 +172,7 @@ GitHub 프로젝트 Pages는 `https://<owner>.github.io/<repository>/` 하위 �
 로컬에서도 base path를 강제로 맞춰 보고 싶다면 아래처럼 빌드할 수 있습니다.
 
 ```sh
-SITE_BASE_PATH=blog bun run build
+SITE_BASE_PATH=blog npm run build
 ```
 
 ## 원본 템플릿에서 업데이트하기
@@ -180,9 +196,9 @@ git remote -v
 git fetch upstream
 git switch main
 git merge upstream/main
-bun install --frozen-lockfile
-bun run check
-bun run build
+npm ci
+npm run check
+npm run build
 git push origin main
 ```
 
@@ -232,9 +248,9 @@ git cherry-pick <commit-sha>
 
 ## 사이트 설정
 
-공통 공개 사이트 설정은 `.env.production`에서 관리합니다. `bun run dev`와 `bun run build` 모두 이 파일의 `PUBLIC_` 값을 읽으므로 사이트 이름, 언어, 소셜 링크에 같은 기본 설정을 사용합니다. 개발 서버는 Vite 개발 모드를 그대로 유지하며, 공통 로더는 비공개 운영 환경변수를 개발 환경으로 가져오지 않습니다. `PUBLIC_SITE_URL`은 필수이며 제목의 기본값은 `Blog`입니다. 선택 문구와 댓글 설정은 비어 있으면 그대로 둡니다. 사이트 설정은 `.env.production`에서 수정하고 Pages CMS에서는 콘텐츠만 편집합니다. 번역 결과인 `content/translations/<locale>/site.json`은 유지합니다.
+공통 공개 사이트 설정은 `.env.production`에서 관리합니다. `npm run dev`와 `npm run build` 모두 이 파일의 `PUBLIC_` 값을 읽으므로 사이트 이름, 언어, 소셜 링크에 같은 기본 설정을 사용합니다. 개발 서버는 Vite 개발 모드를 그대로 유지하며, 공통 로더는 비공개 운영 환경변수를 개발 환경으로 가져오지 않습니다. `PUBLIC_SITE_URL`은 필수이며 제목의 기본값은 `Blog`입니다. 선택 문구와 댓글 설정은 비어 있으면 그대로 둡니다. 사이트 설정은 `.env.production`에서 수정하고 Pages CMS에서는 콘텐츠만 편집합니다. 번역 결과인 `content/translations/<locale>/site.json`은 유지합니다.
 
-명시적으로 지정한 실행 환경변수, 현재 모드의 일반 env 설정, 운영 공개 설정 순서로 우선 적용합니다. 예를 들어 `.env.development.local`에서 개발용 공개 설정을 덮어쓸 수 있습니다. env 파일을 변경하면 개발 서버를 다시 시작하세요. `bun run preview`는 마지막 `build/` 결과를 제공하므로 설정이나 코드를 수정한 뒤에는 `bun run build`를 다시 실행해야 합니다.
+명시적으로 지정한 실행 환경변수, 현재 모드의 일반 env 설정, 운영 공개 설정 순서로 우선 적용합니다. 예를 들어 `.env.development.local`에서 개발용 공개 설정을 덮어쓸 수 있습니다. env 파일을 변경하면 개발 서버를 다시 시작하세요. `npm run preview`는 마지막 `build/` 결과를 제공하므로 설정이나 코드를 수정한 뒤에는 `npm run build`를 다시 실행해야 합니다.
 
 ```sh
 PUBLIC_SITE_TITLE="My Blog"
@@ -255,7 +271,7 @@ PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ## 번역 워크플로
 
 1. Pages CMS에서 원문을 `content/posts/*.md`에 저장합니다.
-2. GitHub Actions가 `bun run translate:content`를 실행합니다.
+2. GitHub Actions가 `npm run translate:content`를 실행합니다.
 3. `.env.production`의 `PUBLIC_TRANSLATION_LOCALES`에 등록된 각 언어별로 번역본이 없거나 원문 해시가 바뀌었거나 번역 스키마 버전이 달라진 경우에만 DeepL을 호출합니다.
 4. 사이트 문구인 `PUBLIC_SITE_TAGLINE`, `PUBLIC_SITE_DESCRIPTION`, `PUBLIC_SITE_FOOTER`도 같은 방식으로 번역되어 `content/translations/<locale>/site.json`에 저장됩니다. 문구마다 원문 언어가 다를 수 있으므로 사이트 문구는 DeepL의 언어 자동 감지를 사용합니다.
 5. 본문 Markdown은 구조화 XML로 변환해 `tag_handling=xml`, `tag_handling_version=v2`, `ignore_tags` 기반으로 번역하므로 헤딩, 리스트, 코드블록 보존이 더 안정적입니다.
@@ -324,7 +340,7 @@ PUBLIC_RELEASE_USE_TRANSLATIONS=true
 
 ```sh
 PUBLIC_GISCUS_CATEGORY=Announcements \
-bun run build
+npm run build
 ```
 
 설정 절차:
@@ -339,7 +355,7 @@ bun run build
 
 ## 디자인·콘텐츠·추가 기능 보존
 
-디자인은 `src/lib/theme`, 사용자 기능은 `src/lib/extensions`, 공식 동작은 `src/lib/template`에서 관리합니다. `bun run update:check`는 콘텐츠를 생성·번역하지 않고 검사와 빌드를 실행하며 보호 파일의 변경 여부를 확인합니다. `bun run test:template`은 임시 복사본에서 사용자 스타일과 확장 연결을 검증합니다. 자세한 규약과 기존 사용자 코드 이전 절차는 [커스터마이징 가이드](../customization.md)를 참고하세요.
+디자인은 `src/lib/theme`, 사용자 기능은 `src/lib/extensions`, 공식 동작은 `src/lib/template`에서 관리합니다. `npm run update:check`는 콘텐츠를 생성·번역하지 않고 검사와 빌드를 실행하며 보호 파일의 변경 여부를 확인합니다. `npm run test:template`은 임시 복사본에서 사용자 스타일과 확장 연결을 검증합니다. 자세한 규약과 기존 사용자 코드 이전 절차는 [커스터마이징 가이드](../customization.md)를 참고하세요.
 
 ## GitBlog 피드 자동 등록
 

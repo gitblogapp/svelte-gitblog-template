@@ -3,6 +3,7 @@ import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import { readPolicy } from './lib/authoring.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = process.env.POST_IDS_ROOT
@@ -11,6 +12,11 @@ const projectRoot = process.env.POST_IDS_ROOT
 const sourceDir = path.join(projectRoot, 'content/posts');
 const translationsDir = path.join(projectRoot, 'content/translations');
 const writeMode = process.argv.includes('--write');
+if (writeMode && (await readPolicy(projectRoot)).translationMode === 'manual') {
+	throw new Error(
+		'Manual authoring mode: use posts:ids:check; IDs and orphan translations must be resolved explicitly'
+	);
+}
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ulidPattern = /^[0-9A-HJKMNP-TV-Z]{26}$/;

@@ -85,7 +85,7 @@ const englishUiCopy: UiCopy = {
 		ariaLabel: 'Archive search',
 		loading: 'Loading the search index.',
 		missingTitle: 'Pagefind index not found yet.',
-		missingHint: 'For local verification, run `bun run build` and then `bun run preview`.'
+		missingHint: 'For local verification, run `npm run build` and then `npm run preview`.'
 	},
 	modal: {
 		close: 'Close search',
@@ -185,7 +185,7 @@ const uiCopy: Record<string, UiCopy> = {
 			ariaLabel: '아카이브 검색',
 			loading: '검색 인덱스를 불러오는 중입니다.',
 			missingTitle: 'Pagefind 인덱스를 아직 찾지 못했습니다.',
-			missingHint: '로컬에서는 `bun run build` 후 `bun run preview`에서 검색을 확인할 수 있습니다.'
+			missingHint: '로컬에서는 `npm run build` 후 `npm run preview`에서 검색을 확인할 수 있습니다.'
 		},
 		modal: {
 			close: '검색 닫기',

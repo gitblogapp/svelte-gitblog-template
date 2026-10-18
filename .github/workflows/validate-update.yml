@@ -16,11 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
         with:
-          bun-version: latest
-      - run: bun install --frozen-lockfile
-      - run: bun run update:check
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:authoring:build
+      - run: npm run update:check
         env:
           PUBLIC_SITE_URL: https://blog.gitblog.app
           GITHUB_ACTIONS: 'true'

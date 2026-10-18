@@ -13,7 +13,7 @@ const before = await snapshotPaths(root, protectedPaths);
 
 const run = (script) =>
 	new Promise((resolve, reject) => {
-		const child = spawn('bun', ['run', script], { cwd: root, stdio: 'inherit' });
+		const child = spawn('npm', ['run', script], { cwd: root, stdio: 'inherit' });
 		child.on('error', reject);
 		child.on('exit', (code, signal) => {
 			if (code === 0) resolve();

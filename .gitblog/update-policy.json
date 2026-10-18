@@ -3,6 +3,7 @@
 	"themeApiVersion": 1,
 	"extensionApiVersion": 1,
 	"preserve": [
+		".gitblog/authoring.json",
 		"content",
 		"static",
 		"src/lib/theme",
@@ -15,6 +16,7 @@
 	"mergeOnly": [
 		"src/routes",
 		"package.json",
+		"package-lock.json",
 		"bun.lock",
 		"vite.config.ts",
 		"svelte.config.js",

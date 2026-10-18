@@ -1,6 +1,6 @@
 import { loadEnvFile } from './lib/env.mjs';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -278,9 +278,7 @@ for (const changedFile of changedPostFiles) {
 
 	const translationFile = path.join(translationDir, `${slug}.md`);
 	const releaseSourceFile =
-		releaseUseTranslations && (await Bun.file(translationFile).exists())
-			? translationFile
-			: sourceFile;
+		releaseUseTranslations && existsSync(translationFile) ? translationFile : sourceFile;
 	const releaseSourceLocale = releaseSourceFile === translationFile ? releaseLocale : sourceLocale;
 	const post = await readPostDocument(releaseSourceFile, releaseSourceLocale);
 

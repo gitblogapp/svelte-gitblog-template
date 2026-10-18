@@ -14,22 +14,24 @@ SvelteKit ベースの静的ブログテンプレートです。サイト全体�
 
 ## ローカル開発
 
+npm を含む [Node.js](https://nodejs.org/) 24.12 以降をインストールしてください。Bun は不要です。
+
 ```sh
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 Pagefind の検索インデックスは静的ビルド後に生成されます。検索まで確認する場合：
 
 ```sh
-bun run build
-bun run preview
+npm run build
+npm run preview
 ```
 
 設定済み言語の翻訳をローカルで更新する場合：
 
 ```sh
-DEEPL_API_KEY=your-key bun run translate:content
+DEEPL_API_KEY=your-key npm run translate:content
 ```
 
 ## コンテンツ構造
@@ -100,7 +102,7 @@ tags:
 tags: 'dev, git'
 ```
 
-原文には `locale`、`sourcePath`、`sourceHash`、`translationSchemaVersion`、`translationSource`、`translatedAt` を追加しないでください。これらは翻訳スクリプトが生成します。`content/translations` を直接編集せず、`bun run translate:content` で更新します。
+原文には `locale`、`sourcePath`、`sourceHash`、`translationSchemaVersion`、`translationSource`、`translatedAt` を追加しないでください。これらは翻訳スクリプトが生成します。`content/translations` を直接編集せず、`npm run translate:content` で更新します。
 
 ## 検索
 
@@ -154,7 +156,7 @@ GitHub のプロジェクト Pages は `https://<owner>.github.io/<repository>/`
 ローカルで base path を試す場合：
 
 ```sh
-SITE_BASE_PATH=blog bun run build
+SITE_BASE_PATH=blog npm run build
 ```
 
 ## 上流テンプレートから更新する
@@ -178,9 +180,9 @@ git remote -v
 git fetch upstream
 git switch main
 git merge upstream/main
-bun install --frozen-lockfile
-bun run check
-bun run build
+npm ci
+npm run check
+npm run build
 git push origin main
 ```
 
@@ -251,7 +253,7 @@ PUBLIC_SOCIAL_GITHUB_URL=https://github.com/your-name
 ## 翻訳ワークフロー
 
 1. Pages CMS が原文を `content/posts/*.md` に保存します。
-2. GitHub Actions が `bun run translate:content` を実行します。
+2. GitHub Actions が `npm run translate:content` を実行します。
 3. 翻訳がない、原文ハッシュが変わった、schema version が変わった場合だけ DeepL を呼び出します。
 4. tagline、description、footer を `content/translations/<locale>/site.json` へ翻訳します。サイト文言は原言語を自動検出します。
 5. Markdown 本文は構造化 XML に変換し、`tag_handling=xml`、`tag_handling_version=v2`、`ignore_tags` で見出し、リスト、コードブロックを保持します。
@@ -318,7 +320,7 @@ PUBLIC_RELEASE_USE_TRANSLATIONS=true
 
 ```sh
 PUBLIC_GISCUS_CATEGORY=Announcements \
-bun run build
+npm run build
 ```
 
 設定手順：

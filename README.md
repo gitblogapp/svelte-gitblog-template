@@ -14,23 +14,37 @@ A static blog template built with SvelteKit. The entire site is prerendered with
 
 ## Local development
 
+Install [Node.js](https://nodejs.org/) 24.12 or newer, which includes npm. Bun is not required.
+
 ```sh
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 Pagefind builds its search index after the static site build. To test search locally:
 
 ```sh
-bun run build
-bun run preview
+npm run build
+npm run preview
 ```
 
 To refresh all configured translations locally, provide a DeepL API key:
 
 ```sh
-DEEPL_API_KEY=your-key bun run translate:content
+DEEPL_API_KEY=your-key npm run translate:content
 ```
+
+## LLM authoring harness
+
+Start with [AGENTS.md](AGENTS.md) and the [authoring workflow](docs/authoring.md).
+Run `npm run author:context` for repository settings and `npm run author:status` to resume work.
+The harness creates drafts, accepts revision-bound translations, validates content, builds the site,
+and provides explicit deployment and status commands. It does not run an LLM itself.
+
+Set `translationMode` to `manual` in [`.gitblog/authoring.json`](.gitblog/authoring.json) for
+human/LLM-authored translations without DeepL. The default remains `deepl`.
+Manual mode validates published translations in CI and never regenerates or deletes them.
+Keep `PUBLIC_TRANSLATION_LOCALES` configured for localized pages and GitBlog feeds.
 
 ## Content structure
 
@@ -79,7 +93,7 @@ Frontmatter fields follow these rules:
 
 | Field         | Required | Format and behavior                                                                            |
 | ------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `id`          | Required | Immutable UUID or ULID. Generate missing IDs with `bun run posts:ids`; never reuse one.        |
+| `id`          | Required | Immutable UUID or ULID. Generate missing IDs with `npm run posts:ids`; never reuse one.        |
 | `title`       | Required | Used on list/detail pages and in SEO metadata.                                                 |
 | `description` | Required | Used as the post excerpt and SEO description.                                                  |
 | `date`        | Required | Use `YYYY-MM-DD` or an ISO datetime. Controls publication date and sorting.                    |
@@ -107,13 +121,13 @@ tags: 'dev, git'
 `id` belongs to the source post and must survive filename/slug changes. Translations always copy the source ID; do not assign translation IDs independently. Safely backfill IDs and validate all variants with:
 
 ```sh
-bun run posts:ids
-bun run posts:ids:check
+npm run posts:ids
+npm run posts:ids:check
 ```
 
 The backfill command is idempotent. It adds missing source IDs, copies them to translations, removes orphan generated translations, and refuses to overwrite invalid, duplicate, or mismatched existing IDs. Translation sync and GitHub Actions run it before translating; the workflow persists newly generated IDs.
 
-Do not add `locale`, `sourcePath`, `sourceHash`, `translationSchemaVersion`, `translationSource`, or `translatedAt` to source posts. The translation script generates these fields. Update `content/translations` with `bun run translate:content` instead of editing generated files manually.
+Do not add translation metadata (`locale`, `sourceLocale`, `sourcePath`, `sourceHash`, `translationSchemaVersion`, `translationSource`, `translatedAt`, or `translationContentHash`) to source posts. In `deepl` mode, update `content/translations` with `npm run translate:content`. In `manual` mode, use `npm run author:translation` as described in the [authoring guide](docs/authoring.md); `translate:content` only validates the files.
 
 ## Search
 
@@ -165,7 +179,7 @@ Every published language version has its own self-referencing canonical URL. The
 
 Language codes follow the configured audience: `en` remains generic English, `en-gb` becomes `en-GB`, and `zh-hans` / `zh-hant` retain their script distinctions. Article URLs encode the filename slug and retain the deployment's project path. Sitemap `lastmod`, structured data `dateModified`, and Open Graph modification time use `updated` when present; a newer translation `translatedAt` takes precedence for that translation. Builds do not invent modification times.
 
-Run `bun run test:seo` to verify the generated HTML and XML for project Pages and root/custom-domain deployments. This regression check also runs inside `bun run update:check`. Existing blogs receive these changes after applying the template update in Studio and successfully redeploying.
+Run `npm run test:seo` to verify the generated HTML and XML for project Pages and root/custom-domain deployments. This regression check also runs inside `npm run update:check`. Existing blogs receive these changes after applying the template update in Studio and successfully redeploying.
 
 ### Google Search registration
 
@@ -200,7 +214,7 @@ On a custom domain or an `<owner>.github.io` root site, the generated `/robots.t
 To test a base path locally:
 
 ```sh
-SITE_BASE_PATH=blog bun run build
+SITE_BASE_PATH=blog npm run build
 ```
 
 ## Updating from the upstream template
@@ -224,9 +238,9 @@ Fetch and merge later updates:
 git fetch upstream
 git switch main
 git merge upstream/main
-bun install --frozen-lockfile
-bun run check
-bun run build
+npm ci
+npm run check
+npm run build
 git push origin main
 ```
 
@@ -276,9 +290,9 @@ Current CMS rules:
 
 ## Site configuration
 
-Shared public site settings live in `.env.production`. Both `bun run dev` and `bun run build` load its `PUBLIC_` values, so the site title, languages, and social links use the same defaults. Development still runs in Vite's development mode; private production variables are not imported into development by this shared loader. `PUBLIC_SITE_URL` is required. The title defaults to `Blog`; optional copy and comment settings stay empty when unset. Edit `.env.production` for site settings; Pages CMS edits content only. Generated translations remain in `content/translations/<locale>/site.json`.
+Shared public site settings live in `.env.production`. Both `npm run dev` and `npm run build` load its `PUBLIC_` values, so the site title, languages, and social links use the same defaults. Development still runs in Vite's development mode; private production variables are not imported into development by this shared loader. `PUBLIC_SITE_URL` is required. The title defaults to `Blog`; optional copy and comment settings stay empty when unset. Edit `.env.production` for site settings; Pages CMS edits content only. Generated translations remain in `content/translations/<locale>/site.json`.
 
-Explicit process environment values take priority, followed by the current mode's normal env settings, then production public settings. For example, `.env.development.local` can override public settings for local development. Restart the dev server after changing env files. `bun run preview` serves the last `build/` output; run `bun run build` again to preview configuration or code changes.
+Explicit process environment values take priority, followed by the current mode's normal env settings, then production public settings. For example, `.env.development.local` can override public settings for local development. Restart the dev server after changing env files. `npm run preview` serves the last `build/` output; run `npm run build` again to preview configuration or code changes.
 
 ```sh
 PUBLIC_SITE_TITLE="My Blog"
@@ -309,7 +323,7 @@ Start analysis and confirm removal in Studio. Manually dispatching or re-running
 ## Translation workflow
 
 1. Pages CMS stores source posts in `content/posts/*.md`.
-2. GitHub Actions runs `bun run translate:content`.
+2. GitHub Actions runs `npm run translate:content`.
 3. DeepL is called only when a translation is missing, its source hash changed, or its schema version changed.
 4. `PUBLIC_SITE_TAGLINE`, `PUBLIC_SITE_DESCRIPTION`, and `PUBLIC_SITE_FOOTER` are translated into `content/translations/<locale>/site.json`. Site copy uses automatic source-language detection.
 5. Markdown bodies are converted to structured XML and translated with `tag_handling=xml`, `tag_handling_version=v2`, and `ignore_tags` so headings, lists, and code blocks stay intact.
@@ -376,7 +390,7 @@ Shell environment variables can temporarily override them locally:
 
 ```sh
 PUBLIC_GISCUS_CATEGORY=Announcements \
-bun run build
+npm run build
 ```
 
 Setup:
@@ -391,13 +405,13 @@ The deployment workflow uses `giscus-post-<first 16 hex characters of SHA-256(po
 
 ## Customization and update preservation
 
-Theme files live in `src/lib/theme`, user extensions in `src/lib/extensions`, and shared behavior in `src/lib/template`. Run `bun run update:check` for a build that verifies protected source files remain unchanged. Run `bun run test:template` to exercise custom CSS and extension points in a temporary copy. See [the customization guide](docs/customization.md) for contracts, ownership, and migration limits.
+Theme files live in `src/lib/theme`, user extensions in `src/lib/extensions`, and shared behavior in `src/lib/template`. Run `npm run update:check` for a build that verifies protected source files remain unchanged. Run `npm run test:template` to exercise custom CSS and extension points in a temporary copy. See [the customization guide](docs/customization.md) for contracts, ownership, and migration limits.
 
-### gitblog 통합 댓글 호스트
+### GitBlog integrated comment host
 
-gitblog 통합 댓글을 사용하려면 `PUBLIC_GISCUS_PROVIDER=gitblog`, `PUBLIC_GISCUS_HOST=https://gitblog.app`으로 설정합니다. 저장소·카테고리 ID는 gitblog에서 자동 연결합니다. 개발 모드에서는 localhost HTTP 미리보기도 허용하지만 운영 블로그에는 공개 HTTPS 주소가 필요합니다.
+To use GitBlog's integrated comments, set `PUBLIC_GISCUS_PROVIDER=gitblog` and `PUBLIC_GISCUS_HOST=https://gitblog.app`. GitBlog connects the repository and category IDs automatically. Development mode permits localhost HTTP previews; production blogs require a public HTTPS URL.
 
-gitblog에서 생성한 블로그는 앱 연결 완료 시 댓글 저장소·카테고리 ID 4개가 자동 저장됩니다. `PUBLIC_GISCUS_PROVIDER=gitblog`이면서 운영 호스트가 비어 있으면 댓글 영역에 준비 중 안내를 표시합니다. 공식 giscus 설치나 수동 ID 입력은 필요하지 않습니다.
+For blogs created through GitBlog, all four comment repository/category configuration values are saved automatically when the app connection completes. If `PUBLIC_GISCUS_PROVIDER=gitblog` is set but the production host is empty, the comment area displays a setup-pending message. Installing the official Giscus app or entering IDs manually is not required.
 
 ## Template updates in GitBlog Studio
 
@@ -431,7 +445,7 @@ Set `PUBLIC_SITE_TITLE` to the display name of your blog, independently of the G
 
 RSS includes an optional `hub:bodyExcerpt` field containing real article prose, separately from the existing description. The build gathers opening paragraphs until approximately 800 Unicode characters are available, with a maximum of 1,200 including spaces and paragraph breaks. Short articles stay intact. Section headings are retained with their following prose; article titles (H1), fenced code, images, tables, and raw HTML are skipped. Long paragraphs are cut at a sentence boundary when possible. Content files are not rewritten. The field is XML-escaped plain text; consumers must never execute it as HTML.
 
-The full feed stays within the hub's 2 MiB limit by budgeting excerpt bytes per article. An excerpt may be shortened or omitted when space is limited; published articles are never removed from the feed to make room. Existing blogs receive this feature after updating and deploying the template; the hub must also support the new field. Run `bun run test:body-excerpt` for extraction checks and `bun run test:template` for the built RSS integration check.
+The full feed stays within the hub's 2 MiB limit by budgeting excerpt bytes per article. An excerpt may be shortened or omitted when space is limited; published articles are never removed from the feed to make room. Existing blogs receive this feature after updating and deploying the template; the hub must also support the new field. Run `npm run test:body-excerpt` for extraction checks and `npm run test:template` for the built RSS integration check.
 
 ### GitBlog related article panel
 
