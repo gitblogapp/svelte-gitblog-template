@@ -25,6 +25,7 @@ export function markdownResponse(locale: Locale, slug: string) {
 		date: post.date,
 		updated: post.updated ?? post.date,
 		language: site.language,
+		site_url: site.url,
 		url: canonical
 	};
 	return new Response(
@@ -76,7 +77,7 @@ export function llmsText() {
 		'This index lists published articles. HTML URLs identify the original articles; Markdown is an optional equivalent representation.',
 		'Crawling preferences are expressed in the host-root robots.txt. This file is not a permission or ranking standard.',
 		'',
-		`- [Sitemap](${toAbsoluteUrl(site, '/sitemap.xml')})`,
+		`- [Sitemap](<${toAbsoluteUrl(site, '/sitemap.xml')}>)`,
 		''
 	];
 	for (const locale of getConfiguredLocales()) {
@@ -85,10 +86,10 @@ export function llmsText() {
 		lines.push(`## ${locale}`, '');
 		for (const post of posts) {
 			lines.push(
-				`- [${inline(post.title)}](${toAbsoluteUrl(site, toPostPath(locale, post.slug))}): ${inline(post.description)}`
+				`- [${inline(post.title)}](<${toAbsoluteUrl(site, toPostPath(locale, post.slug))}>): ${inline(post.description)}`
 			);
 			if (policy.markdown)
-				lines.push(`  - [Markdown](${toAbsoluteUrl(site, markdownPath(locale, post.slug))})`);
+				lines.push(`  - [Markdown](<${toAbsoluteUrl(site, markdownPath(locale, post.slug))}>)`);
 		}
 		lines.push('');
 	}

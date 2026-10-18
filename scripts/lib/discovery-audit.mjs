@@ -77,7 +77,11 @@ export async function auditDiscovery(manifest, read, { live = false, limit = 10 
 	if (manifest.policy.llms) {
 		const valid =
 			llms.status === 200 &&
-			manifest.pages.every((page) => llms.text.includes(`](${page.canonicalUrl})`));
+			manifest.pages.every(
+				(page) =>
+					llms.text.includes(`](${page.canonicalUrl})`) ||
+					llms.text.includes(`](<${page.canonicalUrl}>)`)
+			);
 		record(
 			valid ? 'pass' : 'fail',
 			'llms-index',

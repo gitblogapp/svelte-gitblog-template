@@ -5,13 +5,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { changedPaths, snapshotPaths } from '../scripts/lib/preservation.mjs';
+import { marked } from 'marked';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const fixture = await mkdtemp(path.join(os.tmpdir(), 'gitblog-translated-seo-'));
 const excluded = new Set(['.git', 'node_modules', '.svelte-kit', 'build']);
 const locales = ['ko', 'en', 'en-gb', 'zh', 'zh-hans', 'zh-hant'];
 const tags = ['ko', 'en', 'en-GB', 'zh', 'zh-Hans', 'zh-Hant'];
-const slug = '한글 공백 & 100%';
+const slug = '한글 공백 ) & 100%';
 const postDate = '2026-01-01T01:00:00.000Z';
 const updated = '2026-02-02T02:00:00.000Z';
 const translatedAt = '2026-03-03T03:00:00.000Z';
@@ -104,6 +105,16 @@ try {
 			await readFile(path.join(fixture, 'build/.well-known/ai-discovery.json'), 'utf8')
 		);
 		const llms = await readFile(path.join(fixture, 'build/llms.txt'), 'utf8');
+		const indexTargets = [];
+		marked.walkTokens(marked.lexer(llms), (token) => {
+			if (token.type === 'link') indexTargets.push(token.href);
+		});
+		if (exportsEnabled)
+			for (const page of discovery.pages)
+				assert.ok(
+					indexTargets.includes(page.canonicalUrl),
+					'Markdown parser must preserve special-character article URLs'
+				);
 		assert.ok(!JSON.stringify(discovery).includes('unpublished-source'));
 		assert.ok(!llms.includes('unpublished-source'));
 		assert.equal(discovery.pages.length, locales.length + 1);
