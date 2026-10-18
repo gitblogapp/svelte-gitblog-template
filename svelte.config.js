@@ -1,24 +1,13 @@
 import adapter from '@sveltejs/adapter-static';
 
-const normalizeBase = (value) => {
-	if (!value || value === '/') {
-		return '';
-	}
+import { loadEnv } from 'vite';
+import { pagesBase } from './scripts/lib/site-config.mjs';
 
-	return `/${value.replace(/^\/+|\/+$/g, '')}`;
-};
-
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? '';
-const repoOwner = process.env.GITHUB_REPOSITORY_OWNER ?? '';
-const isProjectPages =
-	repoName !== '' &&
-	repoOwner !== '' &&
-	repoName.toLowerCase() !== `${repoOwner.toLowerCase()}.github.io`;
-
-const defaultBase =
-	process.env.GITHUB_ACTIONS === 'true' && isProjectPages ? normalizeBase(repoName) : '';
-
-const base = normalizeBase(process.env.SITE_BASE_PATH ?? defaultBase);
+// PUBLIC_SITE_URL is authoritative for root/custom-domain and project Pages paths.
+const base = pagesBase(
+	process.env,
+	loadEnv('production', process.cwd(), 'PUBLIC_').PUBLIC_SITE_URL
+);
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

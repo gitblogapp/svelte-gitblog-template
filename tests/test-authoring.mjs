@@ -187,6 +187,11 @@ try {
 	// There is no Git checkout in this fixture: deployment must fail without trying a push.
 	json(['deploy'], false);
 	// External boundaries are faked; no test may push or contact GitHub.
+	await writeFile(
+		path.join(fixture, '.env.production'),
+		(await readFile(path.join(fixture, '.env.production'), 'utf8')) +
+			'PUBLIC_SITE_TITLE=Fixture\nPUBLIC_SITE_URL=https://fixture.github.io/blog\nPUBLIC_SITE_REPOSITORY=fixture/blog\n'
+	);
 	const bin = path.join(fixture, 'bin');
 	await mkdir(bin);
 	const fake =
@@ -209,7 +214,8 @@ if (tool === 'git') {
  if (process.env.FAKE_BUILD_FAIL) process.exit(1);
  if (process.env.FAKE_BUILD_MUTATE) writeFileSync('content/posts/unexpected.md', 'unexpected');
 } else if (tool === 'gh') {
- if (args[0] === 'repo') console.log(JSON.stringify({isTemplate:!!process.env.FAKE_TEMPLATE,defaultBranchRef:{name:'main'}}));
+ if (args[0] === 'api') console.log(JSON.stringify(args[3].endsWith('/pages') ? {build_type:'workflow',cname:process.env.FAKE_PAGES_MISMATCH?'wrong.example.com':null} : {is_template:!!process.env.FAKE_TEMPLATE,default_branch:'main'}));
+ else if (args[0] === 'repo') console.log(JSON.stringify({isTemplate:!!process.env.FAKE_TEMPLATE,defaultBranchRef:{name:'main'}}));
  else if (args[1] === 'list') console.log(process.env.FAKE_WAIT ? '[]' : '[{"databaseId":123}]');
  else if (args[1] === 'view') console.log(JSON.stringify({status:'completed',conclusion:process.env.FAKE_DEPLOY_FAIL?'failure':'success',headSha:head,url:'https://github.com/fixture/blog/actions/runs/123',jobs:[{name:'deploy',conclusion:process.env.FAKE_DEPLOY_FAIL?'skipped':'success'}]}));
  else throw new Error('Unexpected gh command');
@@ -220,7 +226,13 @@ if (tool === 'git') {
 		await chmod(path.join(bin, tool), 0o755);
 	}
 	env.PATH = `${bin}${path.delimiter}${env.PATH}`;
-	for (const key of ['FAKE_DIRTY', 'FAKE_TEMPLATE', 'FAKE_BUILD_FAIL', 'FAKE_BUILD_MUTATE']) {
+	for (const key of [
+		'FAKE_DIRTY',
+		'FAKE_TEMPLATE',
+		'FAKE_BUILD_FAIL',
+		'FAKE_BUILD_MUTATE',
+		'FAKE_PAGES_MISMATCH'
+	]) {
 		env[key] = '1';
 		json(['deploy'], false);
 		delete env[key];

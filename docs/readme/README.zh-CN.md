@@ -12,6 +12,8 @@
 - `content/posts` 中的 Markdown 文章
 - `content/translations/<locale>` 中的 DeepL 翻译结果
 
+See the [first-launch setup guide](../setup.md) for repository discovery, user choices, and Pages/custom-domain configuration. The build base path now follows `PUBLIC_SITE_URL`; `SITE_BASE_PATH` remains an explicit override.
+
 ## 本地开发
 
 请安装包含 npm 的 [Node.js](https://nodejs.org/) 24.12 或更高版本。无需安装 Bun。
@@ -121,7 +123,7 @@ tags: 'dev, git'
 6. 使用 DeepL Free 时可添加 `DEEPL_API_URL=https://api-free.deepl.com`。
 7. 在 [`.env.production`](../../.env.production) 中设置网站信息以及原文、翻译和 Release 语言。
 
-项目型 Pages 仓库会读取 `GITHUB_REPOSITORY` 并自动设置 base path；用户或组织根站点的 base path 保持为空。
+构建会根据 `PUBLIC_SITE_URL` 的路径自动设置 base path：项目 Pages 使用 `/repo`，根站点和自定义域名使用空路径。域名配置请参阅[首次启动指南](../setup.md)。
 
 ### 注册 Google Search
 

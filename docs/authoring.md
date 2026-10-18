@@ -20,6 +20,8 @@ State is derived from the actual content on every run rather than stored in a se
 
 ## Initial setup
 
+For a new blog, complete [the first-launch setup](setup.md) before authoring: run `site:setup`, collect the user's choices, apply them with `site:configure`, and configure Pages with `site:pages`. Do not publish with the template's domain, repository, or unconfirmed language defaults. Existing blogs keep their established settings.
+
 Install Node.js 24.12 or newer with npm, then run `npm ci` at the repository root. Use `--` to separate npm options from arguments passed to harness commands, as shown below. For a blog whose translations will be written by an LLM, configure `.gitblog/authoring.json` as follows:
 
 ```json
@@ -117,7 +119,7 @@ npm run author:deploy
 npm run author:deploy-status -- 'PASTE_40_CHARACTER_COMMIT_SHA_HERE'
 ```
 
-Deployment requires Git and GitHub CLI (`gh`) authentication, a github.com `origin`, `main` as the default branch, and a clean working tree. Do not run it in the original GitHub template repository. The command verifies the build again and pushes the verified commit normally. It does not automatically stage, commit, force-push, or manually dispatch a workflow. If branch protection rejects the push, use a PR without bypassing checks.
+Deployment requires Git and GitHub CLI (`gh`) authentication, a github.com `origin`, `main` as the default branch, and a clean working tree. Do not run it in the original GitHub template repository. The command first checks launch configuration and the actual Pages domain/build source, then verifies the build again and pushes the verified commit normally. It does not automatically stage, commit, force-push, or manually dispatch a workflow. If branch protection rejects the push, use a PR without bypassing checks.
 
 CI checks the same policy. Manual mode requires no DeepL key. Do not clear `PUBLIC_TRANSLATION_LOCALES` merely to change translation mode: doing so also removes localized pages and feeds.
 

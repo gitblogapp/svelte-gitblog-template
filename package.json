@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "npm run author:check && vite build && node ./scripts/validate-hub-contract.mjs && pagefind --site build",
+		"build": "npm run author:check && vite build && node ./scripts/build-cname.mjs && node ./scripts/validate-hub-contract.mjs && pagefind --site build",
 		"preview": "node ./scripts/preview.mjs",
 		"posts:ids": "node ./scripts/post-ids.mjs --write",
 		"posts:ids:check": "node ./scripts/post-ids.mjs --check",
@@ -29,7 +29,7 @@
 		"test:authoring:build": "node ./tests/test-authoring-build.mjs",
 		"translate:posts": "npm run translate:content",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "npm run test:authoring && npm run author:check && npm run test:site-translations && npm run test:post-releases && npm run test:post-ids && npm run test:giscus-sync && npm run test:hub-hints && npm run test:preservation && npm run test:extensions && npm run test:analytics && npm run test:body-excerpt && npm run test:related-panel && npm run posts:ids:check && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "npm run test:setup && npm run test:authoring && npm run author:check && npm run test:site-translations && npm run test:post-releases && npm run test:post-ids && npm run test:giscus-sync && npm run test:hub-hints && npm run test:preservation && npm run test:extensions && npm run test:analytics && npm run test:body-excerpt && npm run test:related-panel && npm run posts:ids:check && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
@@ -41,7 +41,13 @@
 		"test:history": "PYTHONPATH=scripts/history python3 -m unittest discover -s tests/history -p 'test_*.py' -v",
 		"test:analytics": "node ./tests/test-analytics.ts",
 		"test:body-excerpt": "node ./tests/test-body-excerpt.ts",
-		"test:related-panel": "node ./tests/test-related-panel.ts"
+		"test:related-panel": "node ./tests/test-related-panel.ts",
+		"site:setup": "node ./scripts/setup.mjs inspect",
+		"site:configure": "node ./scripts/setup.mjs apply",
+		"site:check": "node ./scripts/setup.mjs check",
+		"site:pages": "node ./scripts/setup.mjs pages",
+		"site:pages:status": "node ./scripts/setup.mjs pages-status",
+		"test:setup": "node ./tests/test-setup.mjs"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",

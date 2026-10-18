@@ -137,7 +137,7 @@ tags: 'dev, git'
 6. DeepL Free를 쓰면 선택적으로 `DEEPL_API_URL=https://api-free.deepl.com`도 추가합니다.
 7. 공개 설정 파일 [`.env.production`](../../.env.production)에 사이트 메타, 원문/번역 언어, 릴리즈 언어를 등록합니다.
 
-프로젝트 Pages 저장소라면 빌드 시 `GITHUB_REPOSITORY` 값을 읽어 자동으로 base path를 맞춥니다. 사용자/조직 루트 Pages 저장소라면 base path는 빈 문자열로 유지됩니다.
+`PUBLIC_SITE_URL`의 경로로 빌드 base path를 자동 설정합니다. 프로젝트 Pages 주소는 `/repo`, 루트 사이트나 커스텀 도메인은 빈 경로를 사용합니다. 첫 배포 전에 [초기 설정 가이드](../setup.md)에 따라 `npm run site:setup`으로 값을 확인하고 `site:configure`, `site:pages`로 환경 설정과 Pages 도메인을 적용하세요. CNAME 파일 생성과 DNS 연결은 별도 단계입니다.
 
 ### Google 검색 등록
 

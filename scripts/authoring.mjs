@@ -92,7 +92,8 @@ try {
 					process.env[`PUBLIC_SITE_${key}`] ?? ''
 				])
 			),
-			instructions: ['AGENTS.md', 'docs/authoring.md', '.gitblog/authoring.json'],
+			instructions: ['AGENTS.md', 'docs/setup.md', 'docs/authoring.md', '.gitblog/authoring.json'],
+			firstLaunch: 'Run npm run site:setup before writing or publishing the first post.',
 			commands: ['new', 'status', 'translation', 'check', 'verify', 'deploy', 'deploy-status'],
 			workflow:
 				'new → edit source → status → translation per locale → check → verify → commit → deploy → deploy-status',
@@ -197,6 +198,8 @@ try {
 		);
 		if (repo.isTemplate || repo.defaultBranchRef?.name !== 'main')
 			throw new Error('Deploy from a personal non-template blog with main as the default branch');
+		run(process.execPath, ['scripts/setup.mjs', 'check']);
+		run(process.execPath, ['scripts/setup.mjs', 'pages-status']);
 		const commit = run('git', ['rev-parse', 'HEAD']);
 		await verify();
 		if (

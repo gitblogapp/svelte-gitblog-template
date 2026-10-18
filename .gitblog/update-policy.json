@@ -4,6 +4,7 @@
 	"extensionApiVersion": 1,
 	"preserve": [
 		".gitblog/authoring.json",
+		".gitblog/setup.json",
 		"content",
 		"static",
 		"src/lib/theme",

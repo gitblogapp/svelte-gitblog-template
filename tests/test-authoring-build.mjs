@@ -25,9 +25,11 @@ const env = Object.fromEntries(
 Object.assign(env, {
 	PUBLIC_SOURCE_LOCALE: 'ko',
 	PUBLIC_TRANSLATION_LOCALES: 'en,ja',
-	PUBLIC_SITE_URL: 'https://example.com/blog/',
+	PUBLIC_SITE_URL: 'https://fixture.github.io/blog/',
 	PUBLIC_SITE_REPOSITORY: 'fixture/blog',
-	SITE_BASE_PATH: '/blog',
+	GITHUB_ACTIONS: 'true',
+	GITHUB_REPOSITORY: 'fixture/blog',
+	GITHUB_REPOSITORY_OWNER: 'fixture',
 	GITBLOG_BUILD_COMMIT: 'a'.repeat(40)
 });
 const run = (args) => {
@@ -129,8 +131,26 @@ try {
 		assert.ok(html.includes(title));
 		assert.ok(html.includes('hreflang="en"'));
 	}
+	await assert.rejects(readFile(path.join(fixture, 'build/CNAME')), { code: 'ENOENT' });
+	env.PUBLIC_SITE_URL = 'https://notes.example.com';
+	run(['run', 'build']);
+	assert.equal(await readFile(path.join(fixture, 'build/CNAME'), 'utf8'), 'notes.example.com\n');
+	const customHtml = await readFile(
+		path.join(fixture, 'build/blog/harness-check/index.html'),
+		'utf8'
+	);
+	assert.ok(customHtml.includes('https://notes.example.com/blog/harness-check/'));
+	assert.ok(!customHtml.includes('/blog/_app/'));
+	assert.ok(customHtml.includes('/_app/immutable/'));
+	assert.deepEqual(
+		changedPaths(
+			before,
+			await snapshotPaths(fixture, ['content', 'static', '.gitblog/authoring.json'])
+		),
+		[]
+	);
 	console.log(
-		'Manual authoring build passed without DeepL: ko/en/ja HTML, reciprocal language links, project-base RSS, immutable IDs, manifest and source preservation.'
+		'Manual authoring build passed without DeepL: ko/en/ja HTML, reciprocal language links, automatic project/custom-domain paths, CNAME, RSS, immutable IDs, manifest and source preservation.'
 	);
 } finally {
 	await rm(fixture, { recursive: true, force: true });

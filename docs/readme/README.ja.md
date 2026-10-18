@@ -12,6 +12,8 @@ SvelteKit ベースの静的ブログテンプレートです。サイト全体�
 - `content/posts` の Markdown 投稿
 - `content/translations/<locale>` の DeepL 翻訳
 
+See the [first-launch setup guide](../setup.md) for repository discovery, user choices, and Pages/custom-domain configuration. The build base path now follows `PUBLIC_SITE_URL`; `SITE_BASE_PATH` remains an explicit override.
+
 ## ローカル開発
 
 npm を含む [Node.js](https://nodejs.org/) 24.12 以降をインストールしてください。Bun は不要です。
@@ -121,7 +123,7 @@ tags: 'dev, git'
 6. DeepL Free では必要に応じて `DEEPL_API_URL=https://api-free.deepl.com` も追加します。
 7. [`.env.production`](../../.env.production) にサイト情報と原文・翻訳・Release の言語を設定します。
 
-プロジェクト Pages では `GITHUB_REPOSITORY` から base path を自動設定します。ユーザーまたは組織のルート Pages では base path は空です。
+`PUBLIC_SITE_URL` のパスから base path を自動設定します。プロジェクト Pages では `/repo`、ルートサイトやカスタムドメインでは空になります。ドメイン設定は [初期設定ガイド](../setup.md) を参照してください。
 
 ### Google Search への登録
 

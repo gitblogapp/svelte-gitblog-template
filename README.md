@@ -34,6 +34,20 @@ To refresh all configured translations locally, provide a DeepL API key:
 DEEPL_API_KEY=your-key npm run translate:content
 ```
 
+## First launch with an LLM
+
+Start with the [setup guide](docs/setup.md) before writing the first post. Run `npm run site:setup` to discover repository settings and the questions the agent must ask the user. The harness infers the repository and comment IDs, while the user chooses the blog title, public URL, languages, and whether to enable comments.
+
+```sh
+npm run site:setup
+# Save the user's answers in .gitblog/work/setup.json as described in the guide.
+npm run site:configure -- --from .gitblog/work/setup.json
+npm run site:check
+npm run site:pages
+```
+
+Configuration updates `.env.production` and generates `static/CNAME` from a custom `PUBLIC_SITE_URL`. `site:pages` also updates GitHub Pages settings: Actions deployments do not configure domains from CNAME files alone. Domain DNS must be configured separately. Run `npm run site:pages:status` to inspect the actual Pages settings before deployment.
+
 ## LLM authoring harness
 
 Start with [AGENTS.md](AGENTS.md) and the [authoring workflow](docs/authoring.md).
@@ -171,7 +185,7 @@ After a successful Pages deployment, `deploy.yml` sends `POST /v1/ingestion/depl
 6. For DeepL Free, optionally add `DEEPL_API_URL=https://api-free.deepl.com`.
 7. Configure site metadata and source/translation/release locales in [`.env.production`](.env.production).
 
-For a project Pages repository, the build reads `GITHUB_REPOSITORY` and sets the base path automatically. The base path stays empty for a user or organization root Pages repository.
+The build derives its base path from `PUBLIC_SITE_URL`: `/repo` for a project Pages URL and an empty path for a root site or custom domain. `SITE_BASE_PATH` can explicitly override this for previews. The build also writes `build/CNAME` for a custom hostname; configure the Pages domain through `site:pages` as described in the [setup guide](docs/setup.md).
 
 ### SEO for translated posts
 
