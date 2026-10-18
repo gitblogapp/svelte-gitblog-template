@@ -92,7 +92,13 @@ try {
 					process.env[`PUBLIC_SITE_${key}`] ?? ''
 				])
 			),
-			instructions: ['AGENTS.md', 'docs/setup.md', 'docs/authoring.md', '.gitblog/authoring.json'],
+			instructions: [
+				'AGENTS.md',
+				'docs/setup.md',
+				'docs/authoring.md',
+				'docs/llm-writing-guidelines.md',
+				'.gitblog/authoring.json'
+			],
 			firstLaunch: 'Run npm run site:setup before writing or publishing the first post.',
 			commands: ['new', 'status', 'translation', 'check', 'verify', 'deploy', 'deploy-status'],
 			workflow:

@@ -33,7 +33,7 @@ const writePost = async (locale, name, id, extra = '') => {
 	await mkdir(dir, { recursive: true });
 	await writeFile(
 		path.join(dir, `${name}.md`),
-		`---\nid: ${id}\ntitle: SEO ${locale}\ndescription: Translated SEO fixture\ndate: ${postDate}\nupdated: ${updated}\n${extra}\n---\n## SEO fixture\n\nPublished article in ${locale}.\n`
+		`---\nid: ${id}\ntitle: SEO ${locale}\ndescription: Translated SEO fixture\nprivateNote: NEVER_EXPORT_THIS_METADATA\ndate: ${postDate}\nupdated: ${updated}\n${extra}\n---\n## SEO fixture\n\nPublished article in ${locale}.\n`
 	);
 };
 try {
@@ -72,7 +72,11 @@ try {
 		'.env.production'
 	];
 	const before = await snapshotPaths(fixture, protectedPaths);
-	for (const base of ['/preview', '']) {
+	for (const { base, exportsEnabled } of [
+		{ base: '/preview', exportsEnabled: true },
+		{ base: '', exportsEnabled: true },
+		{ base: '/preview', exportsEnabled: false }
+	]) {
 		const site = `https://example.com${base}`;
 		// Force a fresh prerender when switching between project Pages and a root/custom domain.
 		for (const dir of ['.svelte-kit', 'build'])
@@ -83,6 +87,10 @@ try {
 				...process.env,
 				SITE_BASE_PATH: base,
 				PUBLIC_SITE_URL: site,
+				PUBLIC_AI_MARKDOWN_ENABLED: String(exportsEnabled),
+				PUBLIC_AI_LLMS_ENABLED: String(exportsEnabled),
+				PUBLIC_AI_OPENAI_TRAINING_ENABLED: 'false',
+				PUBLIC_AI_GOOGLE_EXTENDED_ENABLED: 'false',
 				PUBLIC_SITE_REPOSITORY: 'fixture/blog',
 				PUBLIC_SOURCE_LOCALE: 'ko',
 				PUBLIC_TRANSLATION_LOCALES: [...locales.slice(1), 'ja', 'fr'].join(',')
@@ -92,6 +100,14 @@ try {
 		});
 		assert.equal(result.status, 0, result.error?.message ?? `${result.stdout}\n${result.stderr}`);
 		const sitemap = await readFile(path.join(fixture, 'build/sitemap.xml'), 'utf8');
+		const discovery = JSON.parse(
+			await readFile(path.join(fixture, 'build/.well-known/ai-discovery.json'), 'utf8')
+		);
+		const llms = await readFile(path.join(fixture, 'build/llms.txt'), 'utf8');
+		assert.ok(!JSON.stringify(discovery).includes('unpublished-source'));
+		assert.ok(!llms.includes('unpublished-source'));
+		assert.equal(discovery.pages.length, locales.length + 1);
+		if (!exportsEnabled) assert.equal(llms.trim(), '# Discovery index disabled');
 		assert.match(sitemap, /xmlns:xhtml="http:\/\/www.w3.org\/1999\/xhtml"/);
 		assert.ok(!sitemap.includes('unpublished-source'));
 		const entries = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, xml]) => ({
@@ -131,6 +147,18 @@ try {
 				assert.deepEqual(target.alternates, entry.alternates, 'Alternates must be reciprocal');
 			}
 			if (relative.includes('/blog/') || relative.startsWith('blog/')) {
+				const markdownFile = path.join(fixture, 'build', relative, 'index.md');
+				if (exportsEnabled) {
+					const markdown = await readFile(markdownFile, 'utf8');
+					assert.ok(markdown.includes('## SEO fixture'));
+					assert.ok(markdown.includes(JSON.stringify(entry.url)));
+					assert.ok(!markdown.includes('NEVER_EXPORT_THIS_METADATA'));
+					assert.ok(head.includes('type="text/markdown"'));
+					assert.ok(llms.includes(entry.url));
+				} else {
+					await assert.rejects(readFile(markdownFile), { code: 'ENOENT' });
+					assert.ok(!head.includes('type="text/markdown"'));
+				}
 				const jsonLd = JSON.parse(
 					head.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]
 				);
@@ -151,6 +179,10 @@ try {
 			const prefix = locale === 'ko' ? '' : `${locale}/`;
 			const rss = await readFile(path.join(fixture, `build/${prefix}rss.xml`), 'utf8');
 			assert.ok(!rss.includes('unpublished-source'));
+			await assert.rejects(
+				readFile(path.join(fixture, `build/${prefix}blog/unpublished-source/index.md`)),
+				{ code: 'ENOENT' }
+			);
 			await assert.rejects(
 				readFile(path.join(fixture, `build/${prefix}blog/unpublished-source/index.html`)),
 				{ code: 'ENOENT' }

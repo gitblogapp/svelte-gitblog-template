@@ -486,3 +486,7 @@ the end of the article when that list is absent. Existing themes and environment
 files stay unchanged during Studio updates; the panel and thumbnails are enabled
 by default even when the new settings are absent. A theme that already renders
 `GitBlogRelated` explicitly keeps its own placement without a duplicate panel.
+
+## AI access and crawl checks
+
+Manage independent search and training crawler preferences in GitBlog Studio. Published articles also offer Markdown and an optional `llms.txt` index. Builds check static readability and metadata; Pages deployments check the live host and upload a crawl report. See [configuration and hosting limits](docs/ai-discovery.md) and [LLM writing guidelines](docs/llm-writing-guidelines.md). These features do not guarantee indexing or AI citation.

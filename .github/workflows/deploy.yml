@@ -155,6 +155,15 @@ jobs:
       - name: Verify feed manifest
         run: test -f build/.well-known/blog-hub.json
 
+      - name: Save expected discovery policy for deployment checks
+        uses: actions/upload-artifact@v4
+        with:
+          name: discovery-check
+          path: build/.well-known/ai-discovery.json
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
+
       - name: Sync post releases
         if: steps.changed-posts.outputs.has_changes == 'true'
         run: node ./scripts/sync-post-releases.mjs
@@ -192,6 +201,35 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  discovery:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.commit_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: discovery-check
+          path: build/.well-known
+      - name: Check deployed crawl access
+        run: npm run discovery:check -- --live
+      - name: Save crawl access results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: discovery-audit
+          path: discovery-audit-live.json
+          retention-days: 14
+          if-no-files-found: warn
 
   register:
     needs: [build, deploy]

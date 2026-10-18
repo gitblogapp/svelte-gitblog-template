@@ -2,6 +2,8 @@
 	import SeoLinks from '$lib/components/SeoLinks.svelte';
 	import { toAbsoluteUrl, toJsonLdScript, toPostSeoLinks } from '$lib/seo';
 	import type { ArticlePageProps } from './contracts';
+	import { env } from '$env/dynamic/public';
+	import { publicFlag } from './ai-policy';
 	let { locale, site, post, availableLocales }: ArticlePageProps = $props();
 	const seo = $derived(toPostSeoLinks(site, locale, post.slug, availableLocales));
 	const canonicalUrl = $derived(seo.canonicalUrl);
@@ -37,6 +39,9 @@
 </script>
 
 <svelte:head>
+	{#if publicFlag(env.PUBLIC_AI_MARKDOWN_ENABLED)}
+		<link rel="alternate" type="text/markdown" href={`${canonicalUrl}index.md`} />
+	{/if}
 	<title>{post.title} | {site.title}</title>
 	<meta name="description" content={post.description} />
 	<meta property="og:type" content="article" />

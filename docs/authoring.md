@@ -40,6 +40,8 @@ When switching existing DeepL translations to manual mode, review their content 
 
 ## 1. Inspect the context and write the source post
 
+Read [LLM writing guidelines](llm-writing-guidelines.md) before drafting or revising prose. They cover direct answers, sources, authorship, dates, readable sections, and translation fidelity. These are writing guidelines, not a promise of search ranking or AI citation.
+
 ```sh
 npm run author:context
 npm run author:new -- 2026-10-18-my-post --title 'Article title' --description 'A concise summary of the article' --date '2026-10-18T10:00:00+09:00'

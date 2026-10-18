@@ -21,11 +21,14 @@ const config = {
 			assets: 'build'
 		}),
 		prerender: {
-			entries: ['*', '/.well-known/blog-hub.json'],
+			entries: ['*', '/.well-known/blog-hub.json', '/.well-known/ai-discovery.json'],
 			handleUnseenRoutes: ({ routes, message }) => {
 				// Dynamic post routes have no entries in a new blog or when every post is a draft.
 				const unexpectedRoutes = routes.filter(
-					(route) => route !== '/blog/[slug]' && !route.startsWith('/[locale=translatedLocale]')
+					(route) =>
+						route !== '/blog/[slug]' &&
+						route !== '/blog/[slug]/index.md' &&
+						!route.startsWith('/[locale=translatedLocale]')
 				);
 
 				if (unexpectedRoutes.length === 0) {

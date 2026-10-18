@@ -3,6 +3,7 @@
 For a first launch or a requested site/domain change, read [the setup guide](docs/setup.md) and run `npm run site:setup` first. Ask the unresolved questions, apply the user's answers with `site:configure`, and validate with `site:check`. Infer repository and discussion IDs from GitHub; never fabricate them. Use `site:pages` to apply Pages settings within the user's launch intent. Keep credentials out of chat and repository files. Report DNS/HTTPS readiness separately from Pages configuration.
 
 Before writing, editing, translating, or publishing posts, read the [authoring guide](docs/authoring.md).
+Apply the [evidence and readability guidelines](docs/llm-writing-guidelines.md) when writing or reviewing prose.
 Run `npm run author:context` to inspect the configured languages, categories, tags, and translation mode.
 Use `author:status` to determine the next step.
 

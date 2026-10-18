@@ -93,13 +93,17 @@ type ParsedPost = {
 	cover: string | null;
 	excerpt: string;
 	bodyExcerpt: string;
+	markdown: string;
 	giscusTerm: string;
 	html: string;
 	timestamp: number;
 };
 
-export type BlogPost = Omit<ParsedPost, 'published' | 'timestamp' | 'bodyExcerpt'>;
-export type PostSummary = Omit<ParsedPost, 'html' | 'published' | 'timestamp' | 'bodyExcerpt'>;
+export type BlogPost = Omit<ParsedPost, 'published' | 'timestamp' | 'bodyExcerpt' | 'markdown'>;
+export type PostSummary = Omit<
+	ParsedPost,
+	'html' | 'published' | 'timestamp' | 'bodyExcerpt' | 'markdown'
+>;
 
 const toSlug = (path: string) => path.split('/').at(-1)?.replace(/\.md$/, '') ?? path;
 
@@ -265,6 +269,7 @@ const parsePost = (
 		cover: normalizeCover(frontmatter.cover),
 		excerpt: createExcerpt(frontmatter.description, content),
 		bodyExcerpt: createBodyExcerpt(content),
+		markdown: content,
 		giscusTerm: createGiscusTerm(id),
 		html: marked.parse(content) as string,
 		timestamp
@@ -371,3 +376,7 @@ export const getPostLocales = (slug: string): Locale[] =>
 	getConfiguredLocales().filter((locale) =>
 		postsByLocale.get(locale)?.some((post) => post.slug === slug)
 	);
+
+// Use the exact same published translation set as HTML; never export raw frontmatter.
+export const getPublishedMarkdown = (slug: string, locale: Locale) =>
+	postsByLocale.get(locale)?.find((post) => post.slug === slug)?.markdown;
