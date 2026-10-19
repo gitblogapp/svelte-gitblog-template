@@ -20,7 +20,7 @@ State is derived from the actual content on every run rather than stored in a se
 
 ## Initial setup
 
-For a new blog, complete [the first-launch setup](setup.md) before authoring: run `site:setup`, collect the user's choices, apply them with `site:configure`, and configure Pages with `site:pages`. Do not publish with the template's domain, repository, or unconfirmed language defaults. Existing blogs keep their established settings.
+For a new blog, complete [the first-launch setup](setup.md) before authoring: run `site:setup`, collect the user's choices, apply them with `site:configure`, and configure Pages with `site:pages`. Do not publish with the template's domain, repository, or unconfirmed language defaults. Existing blogs keep their established settings. Reuse existing GitHub authentication, or follow [the authentication guide](github-auth.md) for browser login or a Fine-grained PAT with permissions appropriate to the task.
 
 Install Node.js 24.12 or newer with npm, then run `npm ci` at the repository root. Use `--` to separate npm options from arguments passed to harness commands, as shown below. For a blog whose translations will be written by an LLM, configure `.gitblog/authoring.json` as follows:
 

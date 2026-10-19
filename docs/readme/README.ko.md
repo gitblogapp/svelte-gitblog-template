@@ -129,6 +129,8 @@ tags: 'dev, git'
 
 ## GitHub Pages 설정
 
+LLM 하네스는 기존 GitHub 인증, 브라우저 로그인, **Fine-grained personal access token(PAT)**을 사용할 수 있습니다. [인증 가이드](../github-auth.md)에 토큰 발급 경로, 블로그 저장소 선택, 작업별 권한, 로컬 `GH_TOKEN` 설정 방법이 있습니다. LLM은 사용자가 선택한 방식에 맞춰 한국어로 발급과 설정을 안내하며, 토큰 값은 채팅에 입력하지 않습니다.
+
 1. 저장소를 GitHub에 푸시합니다.
 2. GitHub 저장소의 `Settings > Pages`에서 `Source`를 `GitHub Actions`로 설정합니다.
 3. 기본 브랜치가 `main`인지 확인합니다.

@@ -36,6 +36,8 @@ DEEPL_API_KEY=your-key npm run translate:content
 
 ## First launch with an LLM
 
+GitHub authentication supports existing credentials, browser login, or a **Fine-grained PAT**. The [authentication guide](docs/github-auth.md) walks users and agents through token issuance, repository permissions, and local `GH_TOKEN` setup.
+
 Start with the [setup guide](docs/setup.md) before writing the first post. Run `npm run site:setup` to discover repository settings and the questions the agent must ask the user. The harness infers the repository and comment IDs, while the user chooses the blog title, public URL, languages, and whether to enable comments.
 
 ```sh

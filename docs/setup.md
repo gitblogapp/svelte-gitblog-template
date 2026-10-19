@@ -8,17 +8,11 @@ The setup harness discovers repository facts, returns questions as JSON, applies
 
 Install Node.js 24.12 or newer, Git, and [GitHub CLI](https://cli.github.com/). Create a personal repository with **Use this template**, clone it, and run `npm ci`. The deployment workflow uses `main` as the default branch.
 
-If GitHub authentication is not already available, the user runs:
+Reuse existing working GitHub authentication. If authentication is missing, offer browser login or a **Fine-grained personal access token**, following [the GitHub authentication guide](github-auth.md). That guide includes token issuance steps, repository permission choices, private local `GH_TOKEN` input, credential inheritance for agents, and troubleshooting. If the user chooses a PAT, guide them through issuance and setup in their language instead of requiring browser login. Never ask them to paste the token into chat.
 
-```sh
-gh auth login --hostname github.com --git-protocol https --web
-gh auth setup-git --hostname github.com
-gh auth status
-```
+For a first launch, the token needs Contents write and Actions read, plus Pages write and Administration write for Pages configuration and Discussions activation. Include Discussions read when discovering comment categories. Routine publication needs Pages read rather than setup administration permissions; workflow file changes additionally need Workflows write. Use the guide's operation-specific table instead of automatically broadening access. GitHub also requires the user's repository role to permit managing Pages. If setup permissions are unavailable, the user can configure Pages and Discussions in GitHub themselves, then rerun discovery and `site:pages:status`.
 
-Keep existing working SSH authentication when appropriate; GitHub CLI also needs authentication for API reads and Pages configuration. The agent must run in an environment that can use those credentials. Do not ask for tokens in chat, print tokens, put credentials in a remote URL, or save them in `.env.production` or the answers file. Use the OS credential store and check that `gh` did not fall back to plaintext storage.
-
-Push access and Pages administration are separate permissions. A fine-grained PAT needs repository Contents write access for pushes and Actions read access for deployment status; Pages creation/update also requires Pages write and Administration write permissions. GitHub additionally requires an administrator, maintainer, or a role with permission to manage Pages. If those permissions are unavailable, the user can configure **Settings → Pages → GitHub Actions** and the custom domain themselves, then run `site:pages:status`. Enabling Discussions also requires repository Administration write permission. The existing authenticated `gh` session is used; no additional token is stored. Do not automatically broaden token scopes.
+Keep existing working SSH access when appropriate; GitHub CLI also needs API authentication. Verify authentication in the environment that actually runs the agent and harness. Keep credentials out of repository files, answers, remote URLs, and logs.
 
 ## Discover values and ask only unresolved questions
 
