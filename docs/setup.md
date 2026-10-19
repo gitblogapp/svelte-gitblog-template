@@ -2,7 +2,7 @@
 
 Before creating the first post or deploying a new blog, configure `.env.production` for the user's repository. The template's title, domain, repository, and language choices are examples, not user decisions. Read this guide when the user asks to launch a blog; ordinary post-writing tasks must preserve established site settings.
 
-The setup harness discovers repository facts, returns questions as JSON, applies the user's answers, and configures GitHub Pages. The LLM asks the questions in the conversation and passes the answers to the harness. The CLI deliberately does not wait for interactive terminal input.
+The setup harness discovers repository facts, returns questions as JSON, applies the user's answers, enables Discussions for the chosen comments setting, and configures GitHub Pages. The LLM asks the questions in the conversation and passes the answers to the harness. The CLI deliberately does not wait for interactive terminal input.
 
 ## Authenticate once
 
@@ -18,7 +18,7 @@ gh auth status
 
 Keep existing working SSH authentication when appropriate; GitHub CLI also needs authentication for API reads and Pages configuration. The agent must run in an environment that can use those credentials. Do not ask for tokens in chat, print tokens, put credentials in a remote URL, or save them in `.env.production` or the answers file. Use the OS credential store and check that `gh` did not fall back to plaintext storage.
 
-Push access and Pages administration are separate permissions. A fine-grained PAT needs repository Contents write access for pushes and Actions read access for deployment status; Pages creation/update also requires Pages write and Administration write permissions. GitHub additionally requires an administrator, maintainer, or a role with permission to manage Pages. If those permissions are unavailable, the user can configure **Settings → Pages → GitHub Actions** and the custom domain themselves, then run `site:pages:status`. Do not automatically broaden token scopes.
+Push access and Pages administration are separate permissions. A fine-grained PAT needs repository Contents write access for pushes and Actions read access for deployment status; Pages creation/update also requires Pages write and Administration write permissions. GitHub additionally requires an administrator, maintainer, or a role with permission to manage Pages. If those permissions are unavailable, the user can configure **Settings → Pages → GitHub Actions** and the custom domain themselves, then run `site:pages:status`. Enabling Discussions also requires repository Administration write permission. The existing authenticated `gh` session is used; no additional token is stored. Do not automatically broaden token scopes.
 
 ## Discover values and ask only unresolved questions
 
@@ -42,11 +42,11 @@ This reads the Git `origin` push repository and GitHub repository, Pages, and di
 
 The JSON result contains `questions`, `proposed`, `changes`, `errors`, and `warnings`. Ask the user for the unresolved `questions`, preferably together. Values explicitly supplied earlier in the conversation already count as answers; do not ask again. Do not fabricate IDs or silently accept template defaults. A successful `site:configure` records confirmed choices in `.gitblog/setup.json`, so unchanged choices do not require repeated questions.
 
-Also ask whether comments should be enabled. When enabled, the repository must be public and Discussions must be enabled. If Discussions are disabled or no suitable category exists, finish that repository setup and rerun discovery. The default provider is GitBlog, as configured by `PUBLIC_GISCUS_PROVIDER` and `PUBLIC_GISCUS_HOST`; keep those values unless the user requests another provider. Ensure that the selected provider's GitHub App is installed/authorized for the repository. Looking up IDs does not prove that the comments integration works. For the upstream giscus provider, follow [giscus configuration](https://giscus.app/).
+Also ask whether comments should be enabled. When enabled, the repository must be public and Discussions must be enabled. If Discussions are disabled, discovery reports `stage: "needs_discussions"` once the other answers are valid. Run `site:configure` to enable Discussions through `gh api`, verify the setting by reading it back, and discover the real categories. Do not ask the user to toggle it manually when the existing authentication can do so. If category selection remains ambiguous, answer the returned question and rerun `site:configure`. If no category exists, create a suitable one in GitHub and rerun discovery. The default provider is GitBlog, as configured by `PUBLIC_GISCUS_PROVIDER` and `PUBLIC_GISCUS_HOST`; keep those values unless the user requests another provider. Ensure that the selected provider's GitHub App is installed/authorized for the repository. Looking up IDs does not prove that the comments integration works. For the upstream giscus provider, follow [giscus configuration](https://giscus.app/).
 
 When comments are explicitly disabled, the harness clears the repository, IDs, and category name. It does not disable Discussions or uninstall any app. A separate comment repository is not supported by this launch flow because the existing workflow's `GITHUB_TOKEN` cannot sync discussions in another repository.
 
-## Apply the answers locally
+## Apply the answers and enable Discussions
 
 Save the user's choices as JSON in the ignored `.gitblog/work/setup.json` directory. For example, after the user chooses these settings:
 
@@ -68,7 +68,11 @@ npm run site:configure -- --from .gitblog/work/setup.json
 npm run site:check
 ```
 
-`site:configure` refuses to write while questions or errors remain. It updates only the supported public keys, preserves unrelated configuration and comments, and writes `.gitblog/setup.json`. For a custom domain it writes `static/CNAME` containing only the hostname. For a standard `*.github.io` URL it removes a stale `static/CNAME`. It neither commits nor pushes nor changes remote settings.
+`site:configure` refuses to write while known questions or validation errors remain. When comments are enabled and discovery reports `needs_discussions`, it first checks the local values and paths, then sends `PATCH /repos/{owner}/{repo}` with JSON `{ "has_discussions": true }` through the existing `gh` client. It reads the repository back before looking up categories; a successful PATCH alone is not treated as verified activation. Already enabled repositories need no PATCH, and disabling comments never disables Discussions.
+
+It updates only the supported public keys, preserves unrelated configuration and comments, and writes `.gitblog/setup.json`. For a custom domain it writes `static/CNAME` containing only the hostname. For a standard `*.github.io` URL it removes a stale `static/CNAME`. It neither commits nor pushes. Its only remote change is enabling Discussions when needed; Pages configuration remains a separate command.
+
+If activation succeeds but a category still needs selection, it reports Discussions as enabled and `applied: false`, leaving local settings unchanged until the question is resolved. This is a resumable operation, not an atomic transaction across GitHub and local files. On permission failure, check `gh auth status` and Administration write access, or manually enable **Settings → General → Discussions** before retrying. GitHub App installation/authorization remains separate.
 
 Review the other template copy, owner, social links, and optional settings with the user as needed. Never erase their existing customization. For LLM-written translations, set `.gitblog/authoring.json` to `manual` as described in [authoring.md](authoring.md). Empty translation targets disable translated feeds; `PUBLIC_RELEASE_USE_TRANSLATIONS` only controls Release content.
 
@@ -116,5 +120,6 @@ Report configuration, DNS/HTTPS, push, deployment, public-page verification, com
 
 - [GitHub CLI login](https://cli.github.com/manual/gh_auth_login)
 - [Git credential setup](https://cli.github.com/manual/gh_auth_setup-git)
+- [Repository API and Discussions permissions](https://docs.github.com/en/rest/repos/repos#update-a-repository)
 - [GitHub Pages API and permissions](https://docs.github.com/en/rest/pages/pages)
 - [Custom domains and DNS](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)

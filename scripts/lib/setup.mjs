@@ -226,6 +226,7 @@ export async function inspectSetup(
 		if (proposed.PUBLIC_GISCUS_REPO_ID && proposed.PUBLIC_GISCUS_CATEGORY_ID) comments = 'enabled';
 		else ask('comments', 'Enable comments for this blog?', 'enabled', ['enabled', 'disabled']);
 	}
+	const enableDiscussions = comments === 'enabled' && !repo.has_discussions;
 	if (comments === 'disabled') {
 		for (const key of setupKeys.filter((key) => key.startsWith('PUBLIC_GISCUS_')))
 			proposed[key] = '';
@@ -243,9 +244,7 @@ export async function inspectSetup(
 			errors.push(
 				'Giscus requires a public repository; change visibility yourself or disable comments'
 			);
-		if (!repo.has_discussions) {
-			errors.push('Enable Discussions in repository Settings → General, then rerun site:setup');
-		} else {
+		if (repo.has_discussions) {
 			const [owner, name] = repository.split('/');
 			const result = await api('graphql', 'POST', {
 				query:
@@ -297,13 +296,31 @@ export async function inspectSetup(
 			'Confirm the configured comment provider is installed/authorized for this repository. Repository/category lookup does not verify the app installation.'
 		);
 	}
-	if (!questions.length) errors.push(...validateSettings(proposed, repository));
+	if (!questions.length) {
+		// Category IDs cannot be resolved until Discussions is enabled. Validate all other settings first.
+		const validationValues = { ...proposed };
+		if (enableDiscussions)
+			for (const key of setupKeys.filter((key) => key.startsWith('PUBLIC_GISCUS_')))
+				validationValues[key] = '';
+		errors.push(...validateSettings(validationValues, repository));
+	}
 	return {
 		schemaVersion: 1,
-		stage: errors.length ? 'blocked' : questions.length ? 'needs_input' : 'ready',
+		stage: errors.length
+			? 'blocked'
+			: questions.length
+				? 'needs_input'
+				: enableDiscussions
+					? 'needs_discussions'
+					: 'ready',
 		repository,
 		proposed,
 		comments,
+		discussions: {
+			enabled: Boolean(repo.has_discussions),
+			enableRequired: enableDiscussions,
+			settingsUrl: `https://github.com/${repository}/settings`
+		},
 		questions,
 		errors,
 		warnings,
@@ -349,14 +366,41 @@ export async function applySetup(
 	repository = originRepository(root)
 ) {
 	const before = await readSettings(root);
-	const plan = await inspectSetup(root, answers, api, repository);
-	if (plan.stage !== 'ready') return { ...plan, applied: false };
-	const raw = patchSettings(before.raw, plan.proposed);
-	const address = siteAddress(plan.proposed.PUBLIC_SITE_URL);
+	let plan = await inspectSetup(root, answers, api, repository);
+	if (!['ready', 'needs_discussions'].includes(plan.stage)) return { ...plan, applied: false };
+	// Check local serialization and paths before making a remote change.
+	patchSettings(before.raw, plan.proposed);
 	await safePath(root, 'static/CNAME');
 	await safePath(root, '.gitblog/setup.json');
-	if ((await readSettings(root)).raw !== before.raw)
-		throw new Error('.env.production changed during setup; inspect again');
+	const checkUnchanged = async () => {
+		const current = await readSettings(root);
+		if (
+			current.raw !== before.raw ||
+			JSON.stringify(current.state) !== JSON.stringify(before.state)
+		)
+			throw new Error('Local settings changed during setup; inspect again');
+	};
+	await checkUnchanged();
+	if (plan.discussions.enableRequired) {
+		try {
+			await api(`repos/${repository}`, 'PATCH', { has_discussions: true });
+		} catch {
+			throw new Error(
+				'Could not enable Discussions. Check gh auth status and repository Administration write permission, or enable Discussions in Settings → General, then rerun site:configure. Local settings were not written.'
+			);
+		}
+		const refreshed = await repositoryInfo(repository, api);
+		if (!refreshed.has_discussions)
+			throw new Error(
+				'GitHub did not confirm Discussions activation. Rerun site:setup; local settings were not written.'
+			);
+		// Discover real categories after activation; ambiguous choices remain questions.
+		plan = await inspectSetup(root, answers, api, repository);
+		if (plan.stage !== 'ready') return { ...plan, applied: false };
+	}
+	const raw = patchSettings(before.raw, plan.proposed);
+	const address = siteAddress(plan.proposed.PUBLIC_SITE_URL);
+	await checkUnchanged();
 	await writeContent(root, '.env.production', raw);
 	if (address.cname) await writeContent(root, 'static/CNAME', `${address.cname}\n`);
 	else await rm(await safePath(root, 'static/CNAME'), { force: true });

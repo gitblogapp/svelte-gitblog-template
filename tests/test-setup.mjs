@@ -33,10 +33,19 @@ let categories = [
 	{ id: 'D_announcement', name: 'Announcements', slug: 'announcements' }
 ];
 let failPages = false;
+let failDiscussions = false;
+let ignoreDiscussions = false;
 let apiCalls = [];
 const api = async (endpoint, method = 'GET', body) => {
 	apiCalls.push({ endpoint, method, body });
-	if (endpoint === `repos/${repository}`) return repo;
+	if (endpoint === `repos/${repository}`) {
+		if (method === 'PATCH') {
+			assert.deepEqual(body, { has_discussions: true });
+			if (failDiscussions) throw new Error('Permission denied');
+			if (!ignoreDiscussions) repo.has_discussions = true;
+		}
+		return { ...repo };
+	}
 	if (endpoint === 'graphql')
 		return {
 			data: {
@@ -183,6 +192,56 @@ try {
 		'# comment\r\nPUBLIC_SITE_TITLE="C"\r\nOTHER=B\r\n'
 	);
 
+	// Discovery stays read-only; apply enables Discussions only after preflight succeeds.
+	repo.has_discussions = false;
+	apiCalls = [];
+	const pending = await inspect(answers);
+	assert.equal(pending.stage, 'needs_discussions');
+	assert.deepEqual(pending.errors, []);
+	assert.equal(pending.discussions.enableRequired, true);
+	assert.ok(apiCalls.every((call) => call.method === 'GET'));
+	assert.equal(await read('.env.production'), good);
+	for (const input of [
+		{ ...answers, PUBLIC_SITE_URL: 'http://notes.alice.dev' },
+		{ ...answers, PUBLIC_GISCUS_REPO_ID: 'foreign' }
+	])
+		assert.equal((await apply(input)).applied, false);
+	await assert.rejects(apply({ ...answers, PUBLIC_SITE_TITLE: '$EXPAND_ME' }), /literal/);
+	await rm(path.join(fixture, '.gitblog/setup.json'));
+	assert.equal((await apply({ comments: 'enabled' })).applied, false); // Unanswered choices.
+	assert.equal((await apply(changed)).applied, true); // Explicitly disabled comments.
+	assert.equal(repo.has_discussions, false);
+	assert.ok(!apiCalls.some((call) => call.method === 'PATCH'));
+	repo.private = true;
+	assert.equal((await apply(answers)).applied, false);
+	repo.private = false;
+	repo.is_template = true;
+	await assert.rejects(apply(answers), /own repository/);
+	repo.is_template = false;
+	assert.ok(!apiCalls.some((call) => call.method === 'PATCH'));
+	failDiscussions = true;
+	await assert.rejects(apply(answers), /Administration write/);
+	failDiscussions = false;
+	ignoreDiscussions = true;
+	await assert.rejects(apply(answers), /did not confirm/);
+	ignoreDiscussions = false;
+	assert.equal(await read('.env.production'), good);
+	apiCalls = [];
+	const activated = await apply(answers);
+	assert.equal(activated.applied, true);
+	assert.equal(activated.discussions.enabled, true);
+	assert.equal(activated.proposed.PUBLIC_GISCUS_CATEGORY_ID, 'D_announcement');
+	assert.equal(apiCalls.filter((call) => call.method === 'PATCH').length, 1);
+	const patchIndex = apiCalls.findIndex((call) => call.method === 'PATCH');
+	assert.equal(apiCalls[patchIndex + 1].method, 'GET');
+	assert.equal(apiCalls[patchIndex + 1].endpoint, `repos/${repository}`);
+	apiCalls = [];
+	await apply({});
+	assert.ok(!apiCalls.some((call) => call.method === 'PATCH'));
+	await apply(changed);
+	assert.equal(repo.has_discussions, true); // Disabling comments never disables Discussions.
+	assert.equal(await read('.env.production'), good);
+
 	categories = [
 		{ id: 'D_one', name: 'One', slug: 'one' },
 		{ id: 'D_two', name: 'Two', slug: 'two' }
@@ -194,8 +253,18 @@ try {
 		'D_two'
 	);
 	repo.has_discussions = false;
-	assert.ok((await inspect(answers)).errors.some((error) => error.includes('Enable Discussions')));
-	repo.has_discussions = true;
+	apiCalls = [];
+	const unresolved = await apply(answers);
+	assert.equal(unresolved.applied, false);
+	assert.equal(unresolved.stage, 'needs_input');
+	assert.equal(unresolved.discussions.enabled, true);
+	assert.ok(unresolved.questions.some((q) => q.key === 'PUBLIC_GISCUS_CATEGORY_ID'));
+	assert.equal(await read('.env.production'), good);
+	assert.equal(apiCalls.filter((call) => call.method === 'PATCH').length, 1);
+	apiCalls = [];
+	assert.equal((await apply({ ...answers, PUBLIC_GISCUS_CATEGORY: 'Two' })).applied, true);
+	assert.ok(!apiCalls.some((call) => call.method === 'PATCH'));
+	await apply(changed);
 	repo.private = true;
 	assert.ok((await inspect(answers)).errors.some((error) => error.includes('public repository')));
 	repo.private = false;
@@ -238,7 +307,11 @@ appendFileSync('calls.jsonl',JSON.stringify({tool,args,body})+'\n');
 if(tool==='git') console.log('https://github.com/alice/blog.git');
 else {
  const endpoint=args[3]; const method=args[5];
- if(endpoint==='repos/alice/blog') console.log(JSON.stringify({name:'blog',node_id:'R_repo',default_branch:'main',has_discussions:true}));
+ if(endpoint==='repos/alice/blog') {
+  if(method==='PATCH') {if(body.has_discussions!==true) throw new Error('Expected boolean true');writeFileSync('discussions.json',JSON.stringify(body));}
+  console.log(JSON.stringify({name:'blog',node_id:'R_repo',default_branch:'main',has_discussions:existsSync('discussions.json')}));
+ }
+ else if(endpoint==='graphql') console.log(JSON.stringify({data:{repository:{discussionCategories:{nodes:[{id:'D_cli',name:'Announcements',slug:'announcements'}],pageInfo:{hasNextPage:false}}}}}));
  else if(endpoint==='repos/alice/blog/pages') {
   if(method==='GET') {if(!existsSync('pages.json')){console.error('HTTP 404');process.exit(1);} console.log(readFileSync('pages.json','utf8'));}
   else {const old=existsSync('pages.json')?JSON.parse(readFileSync('pages.json','utf8')):{};writeFileSync('pages.json',JSON.stringify({...old,...body}));}
@@ -268,6 +341,29 @@ else {
 	assert.equal(run(['pages']).configurationReady, true);
 	assert.equal(run(['pages-status']).configurationReady, true);
 	assert.ok(!JSON.stringify(run(['inspect'])).includes('never-print-me'));
+	await writeFile(path.join(fixture, 'answers.json'), JSON.stringify(answers));
+	assert.equal(run(['inspect', '--from', 'answers.json']).stage, 'needs_discussions');
+	const cliApplied = run(['apply', '--from', 'answers.json']);
+	assert.equal(cliApplied.applied, true);
+	assert.equal(cliApplied.discussions.enabled, true);
+	assert.equal(cliApplied.proposed.PUBLIC_GISCUS_CATEGORY_ID, 'D_cli');
+	const calls = (await read('calls.jsonl'))
+		.trim()
+		.split('\n')
+		.map((line) => JSON.parse(line));
+	const patches = calls.filter((call) => call.tool === 'gh' && call.args.includes('PATCH'));
+	assert.equal(patches.length, 1);
+	assert.deepEqual(patches[0].args, [
+		'api',
+		'--hostname',
+		'github.com',
+		'repos/alice/blog',
+		'--method',
+		'PATCH',
+		'--input',
+		'-'
+	]);
+	assert.deepEqual(patches[0].body, { has_discussions: true });
 	console.log(
 		'Setup passed: questions, inferred IDs, preservation, validation, CNAME transitions, Pages API, permissions, HTTPS, CLI and no live writes.'
 	);
