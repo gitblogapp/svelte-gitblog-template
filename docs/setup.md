@@ -44,6 +44,8 @@ The JSON result contains `questions`, `proposed`, `changes`, `errors`, and `warn
 
 Also ask whether comments should be enabled. When enabled, the repository must be public and Discussions must be enabled. If Discussions are disabled, discovery reports `stage: "needs_discussions"` once the other answers are valid. Run `site:configure` to enable Discussions through `gh api`, verify the setting by reading it back, and discover the real categories. Do not ask the user to toggle it manually when the existing authentication can do so. If category selection remains ambiguous, answer the returned question and rerun `site:configure`. If no category exists, create a suitable one in GitHub and rerun discovery. The default provider is GitBlog, as configured by `PUBLIC_GISCUS_PROVIDER` and `PUBLIC_GISCUS_HOST`; keep those values unless the user requests another provider. Ensure that the selected provider's GitHub App is installed/authorized for the repository. Looking up IDs does not prove that the comments integration works. For the upstream giscus provider, follow [giscus configuration](https://giscus.app/).
 
+To temporarily hide an already connected comment UI, use `PUBLIC_GISCUS_ENABLED=false` in `.env.production` or the Studio comment display setting. This preserves connection IDs and Discussions; `site:configure` preserves this independent visibility preference.
+
 When comments are explicitly disabled, the harness clears the repository, IDs, and category name. It does not disable Discussions or uninstall any app. A separate comment repository is not supported by this launch flow because the existing workflow's `GITHUB_TOKEN` cannot sync discussions in another repository.
 
 ## Apply the answers and enable Discussions

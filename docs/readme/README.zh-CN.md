@@ -318,6 +318,8 @@ PUBLIC_TRANSLATION_LOCALES=
 
 ## Giscus 评论设置
 
+设置 `PUBLIC_GISCUS_ENABLED=false` 可隐藏整个评论区域（包括设置提示），并停止加载评论脚本和 iframe。默认值为 `true`，未设置或留空时也会显示。也可通过 Studio → 博客设置 → 评论切换。应用最新模板并重新部署后生效。此选项仅控制博客界面，连接 ID、现有评论、Discussions 和部署时的讨论同步均保留。
+
 文章详情页包含 Giscus 评论。公开配置保存在 `.env.production`：
 
 - `PUBLIC_GISCUS_REPO`：`owner/repo` 格式的 GitHub 仓库
@@ -328,6 +330,7 @@ PUBLIC_TRANSLATION_LOCALES=
 这些是可公开并提交的配置：
 
 ```sh
+PUBLIC_GISCUS_ENABLED=true
 PUBLIC_GISCUS_REPO=owner/repo
 PUBLIC_GISCUS_REPO_ID=your-repo-id
 PUBLIC_GISCUS_CATEGORY=General

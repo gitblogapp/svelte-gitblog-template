@@ -99,6 +99,9 @@ Another article in this blog.
 			PUBLIC_HUB_ENABLED: 'true',
 			PUBLIC_HUB_URL: 'https://gitblog.app',
 			PUBLIC_RELATED_ENABLED: 'true',
+			PUBLIC_GISCUS_ENABLED: 'false',
+			PUBLIC_GISCUS_REPO_ID: '',
+			PUBLIC_GISCUS_CATEGORY_ID: '',
 			PUBLIC_RELATED_SHOW_THUMBNAIL: 'false',
 			PUBLIC_RELATED_LIMIT: '6',
 			PUBLIC_GOOGLE_SITE_VERIFICATION: 'preservation-fixture'
@@ -152,6 +155,10 @@ Another article in this blog.
 	);
 	assert.equal((article.match(/data-user-extension="preserved"/g) ?? []).length, 3);
 	assert.ok(article.includes('class="related-boundary"'));
+	assert.ok(
+		!/class="giscus-section(?:\s|")/.test(article),
+		'Hidden comments omit the setup-pending UI too'
+	);
 	assert.ok(!article.includes('<iframe'), 'Recommendations mount only after hydration');
 	assert.ok(
 		article.includes('fixture/current-fork'),

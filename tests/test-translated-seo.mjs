@@ -88,6 +88,13 @@ try {
 				...process.env,
 				SITE_BASE_PATH: base,
 				PUBLIC_SITE_URL: site,
+				PUBLIC_GISCUS_ENABLED: exportsEnabled ? (base ? 'true' : '') : 'false',
+				PUBLIC_GISCUS_PROVIDER: 'gitblog',
+				PUBLIC_GISCUS_HOST: 'https://gitblog.app',
+				PUBLIC_GISCUS_REPO: 'fixture/blog',
+				PUBLIC_GISCUS_REPO_ID: base ? 'R_fixture' : '',
+				PUBLIC_GISCUS_CATEGORY: 'Announcements',
+				PUBLIC_GISCUS_CATEGORY_ID: base ? 'D_fixture' : '',
 				PUBLIC_GOOGLE_SITE_VERIFICATION: 'google-fixture',
 				PUBLIC_BING_SITE_VERIFICATION: exportsEnabled ? 'bing-fixture' : '',
 				PUBLIC_AI_MARKDOWN_ENABLED: String(exportsEnabled),
@@ -171,6 +178,9 @@ try {
 				assert.deepEqual(target.alternates, entry.alternates, 'Alternates must be reciprocal');
 			}
 			if (relative.includes('/blog/') || relative.startsWith('blog/')) {
+				assert.equal(/class="giscus-section(?:\s|")/.test(html), exportsEnabled);
+				assert.equal(/class="giscus-container(?:\s|")/.test(html), exportsEnabled && Boolean(base));
+				assert.equal(/class="giscus-empty font-label(?:\s|")/.test(html), exportsEnabled && !base);
 				const markdownFile = path.join(fixture, 'build', relative, 'index.md');
 				if (exportsEnabled) {
 					const markdown = await readFile(markdownFile, 'utf8');

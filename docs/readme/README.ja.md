@@ -318,6 +318,8 @@ DeepL の言語マッピングは組み込みです。`DEEPL_SOURCE_LANG_<LOCALE
 
 ## Giscus コメント設定
 
+`PUBLIC_GISCUS_ENABLED=false` にすると、設定案内を含むコメント欄全体を非表示にし、コメントスクリプトと iframe の読み込みを停止します。既定値は `true` で、未設定や空欄でも表示します。Studio → ブログ設定 → コメントからも切り替えられます。最新テンプレートを適用して再デプロイすると反映されます。ブログの UI のみを制御し、接続 ID、既存コメント、Discussions、デプロイ時の同期は維持します。
+
 投稿詳細ページには Giscus コメントがあります。公開設定は `.env.production` で管理します。
 
 - `PUBLIC_GISCUS_REPO`：`owner/repo` 形式の GitHub リポジトリ
@@ -328,6 +330,7 @@ DeepL の言語マッピングは組み込みです。`DEEPL_SOURCE_LANG_<LOCALE
 これらは公開してコミットできる設定です。
 
 ```sh
+PUBLIC_GISCUS_ENABLED=true
 PUBLIC_GISCUS_REPO=owner/repo
 PUBLIC_GISCUS_REPO_ID=your-repo-id
 PUBLIC_GISCUS_CATEGORY=General

@@ -65,7 +65,7 @@
 	};
 
 	const mountGiscus = () => {
-		if (!container || !isConfigured()) {
+		if (!site.giscusEnabled || !container || !isConfigured()) {
 			return;
 		}
 
@@ -94,7 +94,7 @@
 	};
 
 	onMount(() => {
-		if (!isConfigured()) {
+		if (!site.giscusEnabled || !isConfigured()) {
 			return;
 		}
 
@@ -125,7 +125,7 @@
 	});
 </script>
 
-{#if isConfigured() || site.giscusProvider === 'gitblog' || dev}
+{#if site.giscusEnabled && (isConfigured() || site.giscusProvider === 'gitblog' || dev)}
 	<section class="giscus-section">
 		<div class="giscus-wrapper">
 			<div class="giscus-header">

@@ -400,6 +400,8 @@ The initial browser locale follows these rules:
 
 ## Giscus comments setup
 
+Set `PUBLIC_GISCUS_ENABLED=false` to hide the entire comment area (including setup messages) and prevent loading the comment script/iframe. The default is `true`, including when the setting is absent or empty. Studio → Blog settings → Comments provides the same display toggle. Apply the latest template and redeploy for changes to take effect. This controls the blog UI only: connection IDs, existing comments, Discussions, and deployment discussion sync are preserved.
+
 Post detail pages include Giscus comments. Public Giscus configuration lives in `.env.production`:
 
 - `PUBLIC_GISCUS_REPO`: GitHub repository in `owner/repo` form
@@ -410,6 +412,7 @@ Post detail pages include Giscus comments. Public Giscus configuration lives in 
 These values are public configuration and are committed in [`.env.production`](.env.production):
 
 ```sh
+PUBLIC_GISCUS_ENABLED=true
 PUBLIC_GISCUS_REPO=owner/repo
 PUBLIC_GISCUS_REPO_ID=your-repo-id
 PUBLIC_GISCUS_CATEGORY=General

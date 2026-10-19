@@ -334,6 +334,8 @@ DeepL 언어 코드는 기본 매핑을 사용합니다. 필요하면 `DEEPL_SOU
 
 ## Giscus 댓글 설정
 
+`PUBLIC_GISCUS_ENABLED=false`로 댓글 영역 전체(연결 안내 포함)를 숨기고 댓글 스크립트·iframe 로딩을 막을 수 있습니다. 기본값은 `true`이며, 설정이 없거나 비어 있어도 표시합니다. Studio → 블로그 설정 → 댓글의 표시 옵션으로도 변경할 수 있습니다. 최신 템플릿을 적용하고 배포하면 반영됩니다. 블로그 UI만 제어하므로 연결 ID, 기존 댓글, Discussions와 배포 시 토론 동기화는 유지됩니다.
+
 포스트 상세 페이지에는 Giscus 댓글 영역이 연결되어 있습니다. 이 프로젝트는 공개 가능한 Giscus 설정을 루트의 `.env.production` 파일로 관리합니다.
 
 - `PUBLIC_GISCUS_REPO`: `owner/repo` 형식의 GitHub 저장소
@@ -346,6 +348,7 @@ DeepL 언어 코드는 기본 매핑을 사용합니다. 필요하면 `DEEPL_SOU
 ```sh
 .env.production
 
+PUBLIC_GISCUS_ENABLED=true
 PUBLIC_GISCUS_REPO=owner/repo
 PUBLIC_GISCUS_REPO_ID=your-repo-id
 PUBLIC_GISCUS_CATEGORY=General
