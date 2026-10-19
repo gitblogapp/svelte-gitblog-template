@@ -1,3 +1,4 @@
+import { cp } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, readFile, copyFile, symlink, rm } from 'node:fs/promises';
@@ -23,6 +24,7 @@ const run = () =>
 try {
 	await mkdir(path.join(fixture, 'content/posts'), { recursive: true });
 	await mkdir(path.join(fixture, 'scripts/lib'), { recursive: true });
+	await cp(path.join(root, 'scripts/lib'), path.join(fixture, 'scripts/lib'), { recursive: true });
 	await copyFile(path.join(root, 'scripts/lib/env.mjs'), path.join(fixture, 'scripts/lib/env.mjs'));
 	await copyFile(
 		path.join(root, 'scripts/lib/authoring.mjs'),

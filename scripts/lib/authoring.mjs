@@ -1,3 +1,4 @@
+import { collectTaxonomy, missingTaxonomy } from './taxonomy.ts';
 import { createHash } from 'node:crypto';
 import { readFile, readdir, lstat, mkdir, rename, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -225,6 +226,18 @@ export async function inspect(root, env) {
 		posts = [],
 		sources = new Map(),
 		ids = new Set();
+	try {
+		await lstat(path.join(root, 'content/taxonomy.json'));
+		const taxonomy = await collectTaxonomy(root, languages.source);
+		if (policy.translationMode === 'manual')
+			errors.push(
+				...missingTaxonomy(taxonomy, languages.targets).map(
+					(row) => `content/taxonomy.json: missing ${row.kind}/${row.id} label ${row.locale}`
+				)
+			);
+	} catch (error) {
+		if (error.code !== 'ENOENT') errors.push(error.message);
+	}
 	for (const file of await markdownFiles(root, 'content/posts')) {
 		const post = await readPost(root, file);
 		const problems = await postErrors(root, post);

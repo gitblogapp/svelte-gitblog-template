@@ -1,3 +1,9 @@
+import {
+	resolvePostTaxonomy,
+	validateTaxonomy,
+	type Taxonomy,
+	type PostTaxonomy
+} from '../../../scripts/lib/taxonomy-core.ts';
 import matter from 'gray-matter';
 import hljs from 'highlight.js';
 import { marked, type Tokens } from 'marked';
@@ -63,6 +69,13 @@ const translatedPostFiles = import.meta.glob('/content/translations/*/posts/*.md
 	query: '?raw'
 }) as Record<string, string>;
 
+const taxonomyFiles = import.meta.glob('/content/taxonomy.json', {
+	eager: true,
+	import: 'default'
+});
+const taxonomy = Object.values(taxonomyFiles)[0] as Taxonomy | undefined;
+if (taxonomy) validateTaxonomy(taxonomy);
+
 type Frontmatter = {
 	id?: string;
 	title?: string;
@@ -90,6 +103,7 @@ type ParsedPost = {
 	readingTime: string;
 	category: string;
 	tags: string[];
+	taxonomy?: PostTaxonomy;
 	cover: string | null;
 	excerpt: string;
 	bodyExcerpt: string;
@@ -252,6 +266,14 @@ const parsePost = (
 		if (Date.parse(translatedAt) > Date.parse(updated ?? date)) updated = translatedAt;
 	}
 
+	const classification = taxonomy
+		? resolvePostTaxonomy(
+				taxonomy,
+				frontmatter.category?.trim() || 'Notes',
+				normalizeTags(frontmatter.tags),
+				locale
+			)
+		: undefined;
 	return {
 		id,
 		locale,
@@ -264,8 +286,9 @@ const parsePost = (
 		published: frontmatter.published !== false,
 		formattedDate: formatDate(locale, timestamp),
 		readingTime: estimateReadingTime(content),
-		category: frontmatter.category?.trim() || 'Notes',
-		tags: normalizeTags(frontmatter.tags),
+		category: classification?.category.label ?? (frontmatter.category?.trim() || 'Notes'),
+		tags: classification?.tags.map((tag) => tag.label) ?? normalizeTags(frontmatter.tags),
+		taxonomy: classification,
 		cover: normalizeCover(frontmatter.cover),
 		excerpt: createExcerpt(frontmatter.description, content),
 		bodyExcerpt: createBodyExcerpt(content),
@@ -343,6 +366,7 @@ const toSummary = (post: ParsedPost): PostSummary => ({
 	readingTime: post.readingTime,
 	category: post.category,
 	tags: post.tags,
+	taxonomy: post.taxonomy,
 	cover: post.cover,
 	excerpt: post.excerpt,
 	giscusTerm: post.giscusTerm

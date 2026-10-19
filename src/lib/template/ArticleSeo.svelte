@@ -82,3 +82,11 @@
 </svelte:head>
 
 <SeoLinks {...seo} />
+
+{#if post.taxonomy}
+	<span hidden data-pagefind-body data-pagefind-weight="0.2"
+		>{[
+			...new Set([post.taxonomy.category, ...post.taxonomy.tags].flatMap((row) => row.aliases))
+		].join(' ')}</span
+	>
+{/if}

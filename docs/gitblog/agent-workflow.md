@@ -15,6 +15,7 @@ Use `author:status` to determine the next step.
 - Follow the user's intent and the style of existing posts. Do not invent facts, quotations, links, execution results, or personal experiences.
 - Create new posts with `author:new`. Preserve each existing post's `id`, filename, and original `date`.
 - Keep drafts at `published: false`. When the user requests publication, set the publication state before translating. Drafts committed to Git are not private storage.
+- For category/tag translations and unified tag search, follow [multilingual taxonomy](taxonomy.md). Run `taxonomy:sync`, fill missing dictionary labels (including English), preserve IDs and user corrections, and run `taxonomy:check`. Post frontmatter retains its original taxonomy references.
 - In `manual` mode, the LLM writes translations and registers them with `author:translation`. Use the source hash obtained before translating. Never attach a new hash to an outdated translation just to pass validation.
 - Preserve code, commands, URLs, image paths, and identifiers during translation. The LLM must review translations for factual accuracy and natural language.
 - Do not bypass validation errors by changing modes, removing translation languages, or changing publication states without the user's intent.

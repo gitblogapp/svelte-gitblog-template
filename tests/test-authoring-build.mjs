@@ -72,6 +72,8 @@ try {
 	const sourceFile = path.join(fixture, 'content/posts/harness-check.md');
 	const { data } = matter(await readFile(sourceFile, 'utf8'));
 	data.published = true;
+	data.category = '시장 분석';
+	data.tags = ['비트코인', 'bitcoin'];
 	await writeFile(sourceFile, matter.stringify('## 확인\n\n한국어 원문입니다.\n', data));
 	const state = JSON.parse(run(['scripts/authoring.mjs', 'status']));
 	for (const [locale, title, body] of [
@@ -93,6 +95,15 @@ try {
 			state.posts[0].sourceHash
 		]);
 	}
+	run(['scripts/taxonomy.mjs']);
+	const dictionaryPath = path.join(fixture, 'content/taxonomy.json');
+	const dictionary = JSON.parse(await readFile(dictionaryPath, 'utf8'));
+	for (const row of dictionary.categories)
+		Object.assign(row.labels, { ko: '시장 분석', en: 'Market Analysis', ja: '市場分析' });
+	for (const row of dictionary.tags)
+		Object.assign(row.labels, { ko: '비트코인', en: 'Bitcoin', ja: 'ビットコイン' });
+	await writeFile(dictionaryPath, JSON.stringify(dictionary, null, 2) + '\n');
+	run(['scripts/taxonomy.mjs', '--check']);
 	// Upgraded blogs can retain a deleted README and have no personal instructions yet.
 	await rm(path.join(fixture, 'README.md'), { force: true });
 	await rm(path.join(fixture, '.gitblog/user-instructions.md'), { force: true });
@@ -144,6 +155,22 @@ try {
 		);
 		assert.ok(html.includes(title));
 		assert.ok(html.includes('hreflang="en"'));
+		assert.ok(rss.includes('<hub:taxonomy>'));
+		assert.ok(
+			rss.includes(
+				locale === 'en'
+					? '<category>Bitcoin</category>'
+					: locale === 'ja'
+						? '<category>ビットコイン</category>'
+						: '<category>비트코인</category>'
+			)
+		);
+		assert.equal(
+			(rss.match(/<category>Bitcoin<\/category>/g) ?? []).length,
+			locale === 'en' ? 1 : 0
+		);
+		assert.ok(html.includes('bitcoin') && html.includes('비트코인'));
+		assert.ok(html.includes('data-pagefind-body'));
 	}
 	await assert.rejects(readFile(path.join(fixture, 'build/CNAME')), { code: 'ENOENT' });
 	env.PUBLIC_SITE_URL = 'https://notes.example.com';
@@ -161,5 +188,6 @@ try {
 		'Manual authoring build passed without DeepL: ko/en/ja HTML, reciprocal language links, automatic project/custom-domain paths, CNAME, RSS, immutable IDs, manifest and source preservation.'
 	);
 } finally {
-	await rm(fixture, { recursive: true, force: true });
+	if (process.env.KEEP_TAXONOMY_FIXTURE) console.log(`Taxonomy preview: ${fixture}`);
+	else await rm(fixture, { recursive: true, force: true });
 }

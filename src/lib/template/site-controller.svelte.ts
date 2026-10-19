@@ -151,7 +151,7 @@ export function createSiteController(): SiteController {
 			base
 		);
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		void goto(nextPath, {
+		void goto(`${nextPath}${window.location.search}${window.location.hash}`, {
 			replaceState: false,
 			noScroll: true,
 			keepFocus: true

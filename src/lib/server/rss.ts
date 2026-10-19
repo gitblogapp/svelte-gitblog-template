@@ -46,6 +46,7 @@ export const createRssResponse = (locale: Locale) => {
 		<hub:sourceLocale>${escapeXml(post.sourceLocale)}</hub:sourceLocale>
 		<hub:giscusTerm>${escapeXml(post.giscusTerm)}</hub:giscusTerm>${cover}${updated}
 ${categories}
+${post.taxonomy ? `\t\t<hub:taxonomy>${escapeXml(JSON.stringify({ version: 1, ...post.taxonomy }))}</hub:taxonomy>` : ''}
 	</item>`;
 			})
 			.join('\n');

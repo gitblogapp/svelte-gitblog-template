@@ -147,3 +147,7 @@ The first update uses the initial commit of a blog created from the template as 
 Maintainers should validate and commit code changes before publishing the version and revision in `.gitblog/release.json` in a separate commit. The revision must be a publicly available 40-character GitHub commit SHA. Do not prepopulate `.gitblog/template.json` in the template: it records the version applied to each individual blog. New blogs also use their initial creation commit to identify the baseline.
 
 First-launch choices are recorded in `.gitblog/setup.json` and preserved during updates. See [setup.md](setup.md) before changing `.env.production` or a Pages domain. Builds derive the base path and output CNAME from `PUBLIC_SITE_URL` without rewriting the source configuration.
+
+### Taxonomy preservation
+
+`content/taxonomy.json` is blog-owned content, including stable IDs, cached translations, aliases and tag separation overrides. The existing `content/` preservation rule covers it. An update must not regenerate, replace or remove this dictionary. Ordinary builds and update checks read it without writing; only explicit taxonomy synchronization or publishing translation workflows extend it. See [taxonomy](taxonomy.md).

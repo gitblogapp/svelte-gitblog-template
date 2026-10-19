@@ -1,3 +1,4 @@
+import { collectTaxonomy, missingTaxonomy, taxonomyFile } from './lib/taxonomy.ts';
 import { randomUUID } from 'node:crypto';
 import { lstat, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -101,6 +102,13 @@ try {
 			...(await readPolicy(root)),
 			...locales(process.env),
 			collections,
+			taxonomy: {
+				path: taxonomyFile,
+				missing: missingTaxonomy(
+					await collectTaxonomy(root, locales(process.env).source),
+					locales(process.env).targets
+				)
+			},
 			siteCopy: Object.fromEntries(
 				['TAGLINE', 'DESCRIPTION', 'FOOTER'].map((key) => [
 					key.toLowerCase(),
@@ -117,6 +125,7 @@ try {
 				'docs/gitblog/github-auth.md',
 				'docs/gitblog/authoring.md',
 				'docs/gitblog/llm-writing-guidelines.md',
+				'docs/gitblog/taxonomy.md',
 				'.gitblog/authoring.json'
 			],
 			firstLaunch: 'Run npm run site:setup before writing or publishing the first post.',

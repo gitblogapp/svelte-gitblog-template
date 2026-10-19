@@ -53,3 +53,7 @@
 - `author:check`와 `author:verify`를 실행한다. 자동 검사가 통과해도 사실 검증과 번역 검토를 대신하지 않는다.
 - 공개 HTML·Markdown·사이트맵·llms.txt에 초안이 포함되지 않는지 확인한다. 저장소에 커밋한 초안은 비밀 저장소가 아님을 기억한다.
 - 검색 색인이나 AI 답변 인용을 보장한다고 쓰지 않는다. `llms.txt`와 Markdown 출력은 보조 접근 수단이다.
+
+## Translate category and tag labels consistently
+
+Use the [taxonomy workflow](taxonomy.md) alongside prose translation. Read the existing `content/taxonomy.json`, translate missing category and tag labels into English and configured languages, and reuse established terms. Keep IDs, source references, user-edited translations and `separate` overrides unchanged. Do not merge distinct categories. Tags merge only through equal normalized English labels unless separated; review ambiguous translations and do not equate related concepts such as Bitcoin and Bitcoin Cash. Original article frontmatter remains a reference, not a place to invent a new tag for each language. Validate with `taxonomy:check`, then the normal authoring checks.

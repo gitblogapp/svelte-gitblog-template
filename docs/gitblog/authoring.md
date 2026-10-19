@@ -69,6 +69,10 @@ Include images using Markdown with descriptive alternative text. Use `/uploads/.
 
 When a new classification is needed, register a `title` in the frontmatter of `content/categories/<name>.md` or `content/tags/<name>.md`. Pages CMS uses that title as a selectable value. A request to write a post does not authorize changes to site settings, themes, or workflows.
 
+## Taxonomy translations
+
+Follow [multilingual taxonomy](taxonomy.md) for categories and tags. Run `taxonomy:sync` after adding names, fill missing labels in `content/taxonomy.json`, and run `taxonomy:check`. The dictionary translates both categories and tags, while translated post frontmatter preserves the source references. Manual validation checks an existing dictionary; a legacy blog without one keeps its original behavior until explicitly initialized. Include the dictionary in content commits and preserve it during updates.
+
 ## 2. Write and register LLM translations
 
 Finish the source post intended for publication, set `published: true`, and then read its current hash. Use the same process for revisions. Changing the source date, tags, or publication state after translating also changes the hash and requires another translation review.

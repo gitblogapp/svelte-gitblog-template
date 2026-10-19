@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import { readPolicy } from './lib/authoring.mjs';
+import { translateTaxonomy, collectTaxonomy, saveTaxonomy } from './lib/taxonomy.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
@@ -914,6 +915,21 @@ const translateSiteCopy = async (targetLocale, targetLang, sourceHash) => {
 
 const sourceFiles = await listMarkdownFiles(sourceDir);
 const sourceByName = new Map(sourceFiles.map((file) => [path.basename(file), file]));
+
+if (targetLocales.length > 0 || apiKey) {
+	await translateTaxonomy(projectRoot, sourceLocale, targetLocales, (texts, locale) => {
+		if (!apiKey)
+			throw new Error(
+				'DEEPL_API_KEY is required for missing taxonomy labels. Run taxonomy:sync and fill labels manually, or configure the key.'
+			);
+		return translateTexts(texts, {
+			targetLang: getDeepLLanguageCode(locale, 'DEEPL_TARGET_LANG'),
+			context: `Blog taxonomy. ${sourceSiteCopy.description} Preserve proper names and distinguish related but different concepts.`
+		});
+	});
+} else {
+	await saveTaxonomy(projectRoot, await collectTaxonomy(projectRoot, sourceLocale));
+}
 
 if (targetLocales.length === 0) {
 	console.log('No translation locales configured. Skipping DeepL sync.');
