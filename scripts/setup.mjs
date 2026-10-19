@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { safePath } from './lib/authoring.mjs';
 import { inspectSetup, applySetup, checkSetup, configurePages } from './lib/setup.mjs';
+import { inspectAppAccess } from './lib/app-access.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 try {
@@ -25,10 +26,13 @@ try {
 	} else if (command === 'check') {
 		report = await checkSetup(root);
 		if (!report.ok) process.exitCode = 1;
+	} else if (command === 'app-status') {
+		report = await inspectAppAccess(root);
+		if (!report.ok) process.exitCode = 1;
 	} else if (command === 'pages' || command === 'pages-status') {
 		report = await configurePages(root, { write: command === 'pages' });
 		if (!report.configurationReady) process.exitCode = 1;
-	} else throw new Error('Use inspect, apply, check, pages, or pages-status');
+	} else throw new Error('Use inspect, apply, check, app-status, pages, or pages-status');
 	console.log(JSON.stringify(report, null, 2));
 } catch (error) {
 	console.log(

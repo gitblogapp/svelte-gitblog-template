@@ -326,7 +326,8 @@ export async function inspectSetup(
 					: comments === 'disabled'
 						? 'disabled'
 						: 'not_configured',
-			guide: 'docs/gitblog/setup.md#verify-the-comment-provider'
+			guide: 'docs/gitblog/github-app.md',
+			next: comments === 'enabled' ? 'npm run site:app:status' : null
 		},
 		discussions: {
 			enabled: Boolean(repo.has_discussions),

@@ -342,6 +342,7 @@ else {
 	};
 	assert.equal(run(['apply', '--from', 'answers.json']).applied, true);
 	assert.equal(run(['check']).ok, true);
+	assert.equal(run(['app-status']).status, 'disabled');
 	assert.equal(run(['pages']).configurationReady, true);
 	assert.equal(run(['pages-status']).configurationReady, true);
 	assert.ok(!JSON.stringify(run(['inspect'])).includes('never-print-me'));

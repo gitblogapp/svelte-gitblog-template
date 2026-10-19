@@ -123,12 +123,15 @@ try {
 				'docs/gitblog/README.md',
 				'docs/gitblog/setup.md',
 				'docs/gitblog/github-auth.md',
+				'docs/gitblog/github-app.md',
 				'docs/gitblog/authoring.md',
 				'docs/gitblog/llm-writing-guidelines.md',
 				'docs/gitblog/taxonomy.md',
 				'.gitblog/authoring.json'
 			],
 			firstLaunch: 'Run npm run site:setup before writing or publishing the first post.',
+			commentSetup:
+				'site:configure → site:app:status → owner installation approval if needed → site:app:status → deploy → verify live article widget',
 			commands: ['new', 'status', 'translation', 'check', 'verify', 'deploy', 'deploy-status'],
 			workflow:
 				'new → edit source → status → translation per locale → check → verify → commit → deploy → deploy-status',

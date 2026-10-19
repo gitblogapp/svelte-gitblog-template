@@ -9,6 +9,7 @@ the blog owner and can be rewritten without changing the harness. Put personal r
 | Start any agent task                                    | [Agent workflow](agent-workflow.md), after the root [AGENTS.md](../../AGENTS.md) and user instructions |
 | Launch a blog or change its domain                      | [Setup](setup.md)                                                                                      |
 | Authenticate with a browser or Fine-grained PAT         | [GitHub authentication](github-auth.md)                                                                |
+| Install/verify GitBlog App for either authentication method | [GitBlog App connection](github-app.md) |
 | Translate tags/categories or unify tag search           | [Multilingual taxonomy](taxonomy.md)                                                                   |
 | Write, translate, validate, or publish posts            | [Authoring](authoring.md) and [writing guidelines](llm-writing-guidelines.md)                          |
 | Configure features, comments, search, analytics, or CMS | [Template reference](reference.md)                                                                     |

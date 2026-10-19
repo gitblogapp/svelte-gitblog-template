@@ -46,6 +46,8 @@ When comments are explicitly disabled, the harness clears the repository, IDs, a
 
 `PUBLIC_GISCUS_ENABLED=true` controls visibility only. `site:setup` and `site:configure` report `commentsIntegration.status: "not_verified"` even when the repository IDs and Discussions are ready. The author's `gh` login or PAT and the workflow's `GITHUB_TOKEN` do not grant a separate provider App access.
 
+Run `npm run site:app:status` after configuration. Follow [GitBlog App connection](github-app.md) for both GitHub login and Fine-grained PAT, installation/organization approval, optional authorized repository addition, and status interpretation. The command is read-only and does not forward author credentials to the provider. Rerun it after the owner completes approval; `accessible` verifies App access while the live widget still needs checking. Network/service errors remain `unknown`, not a missing installation.
+
 For the default `PUBLIC_GISCUS_PROVIDER=gitblog` and `PUBLIC_GISCUS_HOST=https://gitblog.app`:
 
 1. Open [GitBlog App setup](https://github.com/apps/gitblog-app/installations/new). The repository owner selects the blog's owner/organization and adds the actual blog repository to the installation. An installation limited to selected repositories does not automatically cover a newly created blog. Ask the owner to approve any required access; do not grant or broaden it silently.
@@ -76,6 +78,7 @@ Use `comments: "disabled"` to omit comments. If category selection is needed, ad
 npm run site:setup -- --from .gitblog/work/setup.json
 npm run site:configure -- --from .gitblog/work/setup.json
 npm run site:check
+npm run site:app:status
 ```
 
 `site:configure` refuses to write while known questions or validation errors remain. When comments are enabled and discovery reports `needs_discussions`, it first checks the local values and paths, then sends `PATCH /repos/{owner}/{repo}` with JSON `{ "has_discussions": true }` through the existing `gh` client. It reads the repository back before looking up categories; a successful PATCH alone is not treated as verified activation. Already enabled repositories need no PATCH, and disabling comments never disables Discussions.

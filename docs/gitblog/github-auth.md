@@ -46,6 +46,10 @@ These requirements follow the harness operations and GitHub's [repository update
 
 Do not request Actions write just to publish: `author:deploy` pushes to `main`, which triggers the existing workflow. Manual workflow dispatch/rerun or other additional operations may require extra permissions; explain the specific need before changing the user's access. The deployment workflow uses GitHub's built-in `GITHUB_TOKEN`, including its configured Discussions write permission for synchronization. Do not add the user's PAT to Actions secrets or replace that workflow token. Giscus provider app installation/authorization is separate from PAT authentication.
 
+## GitBlog App installation is separate
+
+Follow [GitBlog App connection](github-app.md) after configuring comments. Both authentication methods use `site:app:status`; initial App approval is completed on GitHub in a browser. Choosing a PAT does not remove that approval step or require changing the CLI login method. Prefer the browser repository-selection flow, which does not need additional PAT permissions. For an explicitly authorized API addition to an existing installation, GitHub documents the optional **GitHub App installation repository access: write** permission, in addition to the user being a repository administrator. Do not add it to the default setup token merely to check App access.
+
 ## Supply the token locally
 
 The user enters the token themselves in a private, interactive terminal. The agent must not collect it through chat, tool arguments, screenshots, logs, or an answers file. Do not write it into `.env.production`, `.gitblog/work/`, shell startup files, Git remotes, or source files. Avoid shell tracing, `GH_DEBUG`, `gh auth token`, `gh auth status --show-token`, and environment dumps.
