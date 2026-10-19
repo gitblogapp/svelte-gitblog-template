@@ -52,7 +52,43 @@ try {
 		path.join(fixture, '.gitblog/authoring.json'),
 		JSON.stringify({ schemaVersion: 1, translationMode: 'manual' })
 	);
-	assert.equal(json(['context']).translationMode, 'manual');
+	// Old blogs may lack the optional preserved instructions file. README is not an input.
+	const missingUserContext = json(['context']);
+	assert.equal(missingUserContext.translationMode, 'manual');
+	assert.deepEqual(missingUserContext.userInstructions, {
+		path: '.gitblog/user-instructions.md',
+		exists: false
+	});
+	assert.ok(!missingUserContext.instructions.includes('README.md'));
+	assert.ok(!missingUserContext.instructions.includes('.gitblog/user-instructions.md'));
+	await assert.rejects(readFile(path.join(fixture, '.gitblog/user-instructions.md')), {
+		code: 'ENOENT'
+	});
+	const personalRules = '# 개인 지침\r\n독자는 초보자입니다. 짧게 설명하세요.\r\n';
+	await writeFile(path.join(fixture, '.gitblog/user-instructions.md'), personalRules);
+	await writeFile(path.join(fixture, 'README.md'), '# My completely custom blog\n');
+	const personalContext = json(['context']);
+	assert.equal(personalContext.userInstructions.exists, true);
+	assert.equal(personalContext.instructions[1], '.gitblog/user-instructions.md');
+	assert.ok(personalContext.instructions.includes('docs/gitblog/github-auth.md'));
+	for (const instruction of personalContext.instructions) {
+		const instructionRoot = instruction === personalContext.userInstructions.path ? fixture : root;
+		assert.ok((await readFile(path.join(instructionRoot, instruction))).length > 0, instruction);
+	}
+	assert.ok(!JSON.stringify(personalContext).includes('독자는 초보자'));
+	assert.equal(
+		await readFile(path.join(fixture, '.gitblog/user-instructions.md'), 'utf8'),
+		personalRules
+	);
+	await rm(path.join(fixture, 'README.md'));
+	assert.deepEqual(json(['context']), personalContext);
+	await rm(path.join(fixture, '.gitblog/user-instructions.md'));
+	await symlink(path.join(root, 'README.md'), path.join(fixture, '.gitblog/user-instructions.md'));
+	json(['context'], false); // Do not follow a user instruction symlink outside the blog.
+	await rm(path.join(fixture, '.gitblog/user-instructions.md'));
+	await writeFile(path.join(fixture, '.gitblog/user-instructions.md'), '');
+	assert.equal(json(['context']).userInstructions.exists, true);
+
 	json(
 		['new', '../escape', '--title', 'Bad', '--description', 'Bad', '--date', '2026-01-01'],
 		false

@@ -93,17 +93,31 @@ try {
 			state.posts[0].sourceHash
 		]);
 	}
-	const before = await snapshotPaths(fixture, ['content', 'static', '.gitblog/authoring.json']);
+	// Upgraded blogs can retain a deleted README and have no personal instructions yet.
+	await rm(path.join(fixture, 'README.md'), { force: true });
+	await rm(path.join(fixture, '.gitblog/user-instructions.md'), { force: true });
+	run(['run', 'test:harness-docs']);
+	assert.equal(
+		JSON.parse(run(['scripts/authoring.mjs', 'context'])).userInstructions.exists,
+		false
+	);
+	await writeFile(path.join(fixture, 'README.md'), '# A personal blog introduction\r\n');
+	await writeFile(
+		path.join(fixture, '.gitblog/user-instructions.md'),
+		'# My audience\r\nFor beginners.\r\n'
+	);
+	const protectedPaths = [
+		'content',
+		'static',
+		'.gitblog/authoring.json',
+		'README.md',
+		'.gitblog/user-instructions.md'
+	];
+	const before = await snapshotPaths(fixture, protectedPaths);
 	run(['scripts/sync-content.mjs', '--prepare']);
 	run(['scripts/sync-content.mjs']);
 	run(['run', 'build']);
-	assert.deepEqual(
-		changedPaths(
-			before,
-			await snapshotPaths(fixture, ['content', 'static', '.gitblog/authoring.json'])
-		),
-		[]
-	);
+	assert.deepEqual(changedPaths(before, await snapshotPaths(fixture, protectedPaths)), []);
 	const manifest = JSON.parse(
 		await readFile(path.join(fixture, 'build/.well-known/blog-hub.json'), 'utf8')
 	);
@@ -142,13 +156,7 @@ try {
 	assert.ok(customHtml.includes('https://notes.example.com/blog/harness-check/'));
 	assert.ok(!customHtml.includes('/blog/_app/'));
 	assert.ok(customHtml.includes('/_app/immutable/'));
-	assert.deepEqual(
-		changedPaths(
-			before,
-			await snapshotPaths(fixture, ['content', 'static', '.gitblog/authoring.json'])
-		),
-		[]
-	);
+	assert.deepEqual(changedPaths(before, await snapshotPaths(fixture, protectedPaths)), []);
 	console.log(
 		'Manual authoring build passed without DeepL: ko/en/ja HTML, reciprocal language links, automatic project/custom-domain paths, CNAME, RSS, immutable IDs, manifest and source preservation.'
 	);

@@ -36,7 +36,7 @@ try {
 		process.exitCode = 1;
 	} else {
 		console.log(
-			'Preservation check passed: content, theme, extensions, and configuration unchanged.'
+			'Preservation check passed: user README, instructions, content, theme, extensions, and configuration unchanged.'
 		);
 	}
 }

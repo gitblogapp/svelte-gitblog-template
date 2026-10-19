@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { lstat, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,7 +57,14 @@ const check = async () => {
 };
 const verify = async () => {
 	const report = await check();
-	const protectedPaths = ['content', 'static', '.env.production', '.gitblog/authoring.json'];
+	const protectedPaths = [
+		'content',
+		'static',
+		'.env.production',
+		'.gitblog/authoring.json',
+		'README.md',
+		'.gitblog/user-instructions.md'
+	];
 	const before = await snapshotPaths(root, protectedPaths);
 	run('npm', ['run', 'build'], true);
 	const changes = changedPaths(before, await snapshotPaths(root, protectedPaths));
@@ -75,6 +82,14 @@ const githubRepository = () => {
 
 try {
 	if (command === 'context') {
+		const userInstructions = { path: '.gitblog/user-instructions.md', exists: false };
+		try {
+			const file = await lstat(await safePath(root, userInstructions.path));
+			if (!file.isFile()) throw new Error('User instructions must be a regular file');
+			userInstructions.exists = true;
+		} catch (error) {
+			if (error.code !== 'ENOENT') throw error;
+		}
 		const collections = {};
 		for (const kind of ['categories', 'tags'])
 			collections[kind] = await Promise.all(
@@ -92,11 +107,16 @@ try {
 					process.env[`PUBLIC_SITE_${key}`] ?? ''
 				])
 			),
+			userInstructions,
 			instructions: [
 				'AGENTS.md',
-				'docs/setup.md',
-				'docs/authoring.md',
-				'docs/llm-writing-guidelines.md',
+				...(userInstructions.exists ? [userInstructions.path] : []),
+				'docs/gitblog/agent-workflow.md',
+				'docs/gitblog/README.md',
+				'docs/gitblog/setup.md',
+				'docs/gitblog/github-auth.md',
+				'docs/gitblog/authoring.md',
+				'docs/gitblog/llm-writing-guidelines.md',
 				'.gitblog/authoring.json'
 			],
 			firstLaunch: 'Run npm run site:setup before writing or publishing the first post.',

@@ -36,7 +36,7 @@ try {
 			{
 				ok: false,
 				error: error.message,
-				next: 'Read docs/setup.md; check gh auth status if GitHub access failed.'
+				next: 'Read docs/gitblog/setup.md; check gh auth status if GitHub access failed.'
 			},
 			null,
 			2

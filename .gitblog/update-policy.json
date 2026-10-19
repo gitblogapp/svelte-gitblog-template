@@ -3,6 +3,8 @@
 	"themeApiVersion": 1,
 	"extensionApiVersion": 1,
 	"preserve": [
+		"README.md",
+		".gitblog/user-instructions.md",
 		".gitblog/authoring.json",
 		".gitblog/setup.json",
 		"content",
@@ -15,6 +17,7 @@
 		".pages.yml"
 	],
 	"mergeOnly": [
+		"AGENTS.md",
 		"src/routes",
 		"package.json",
 		"package-lock.json",
