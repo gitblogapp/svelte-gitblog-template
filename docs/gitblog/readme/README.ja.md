@@ -351,7 +351,7 @@ npm run build
 設定手順：
 
 1. リポジトリで GitHub Discussions を有効にします。
-2. [giscus.app](https://giscus.app) でリポジトリとカテゴリを選択します。
+2. For the default GitBlog host, authorize this blog in the [GitBlog App installation](https://github.com/apps/gitblog-app/installations/new). Use [giscus.app](https://giscus.app) only for an explicitly selected upstream provider. Follow [provider verification](../setup.md#verify-the-comment-provider); a PAT does not grant the App access.
 3. `repo`、`repoId`、`category`、`categoryId` を `.env.production` にコピーします。
 
 サイトのダークモードは Giscus iframe のテーマと自動同期します。

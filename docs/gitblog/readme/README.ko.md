@@ -371,7 +371,7 @@ npm run build
 설정 절차:
 
 1. 저장소에서 GitHub Discussions를 활성화합니다.
-2. [giscus.app](https://giscus.app)에서 저장소와 카테고리를 선택합니다.
+2. 기본 GitBlog 댓글 호스트를 쓰면 [GitBlog App 설정](https://github.com/apps/gitblog-app/installations/new)에서 실제 블로그 저장소를 포함하고 Discussions 권한을 승인합니다. PAT 로그인만으로는 App 접근이 승인되지 않습니다. 외부 giscus 호스트를 명시적으로 선택했을 때만 [giscus.app](https://giscus.app)을 사용합니다. [댓글 연결 검증](../setup.md#verify-the-comment-provider)도 완료하세요.
 3. 생성된 값 중 `repo`, `repoId`, `category`, `categoryId`를 `.env.production`에 복사합니다.
 
 사이트의 다크모드 토글은 Giscus iframe 테마와 자동으로 동기화됩니다.

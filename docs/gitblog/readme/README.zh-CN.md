@@ -351,7 +351,7 @@ npm run build
 设置步骤：
 
 1. 为仓库启用 GitHub Discussions。
-2. 在 [giscus.app](https://giscus.app) 选择仓库和分类。
+2. For the default GitBlog host, authorize this blog in the [GitBlog App installation](https://github.com/apps/gitblog-app/installations/new). Use [giscus.app](https://giscus.app) only for an explicitly selected upstream provider. Follow [provider verification](../setup.md#verify-the-comment-provider); a PAT does not grant the App access.
 3. 将 `repo`、`repoId`、`category`、`categoryId` 复制到 `.env.production`。
 
 网站的深色模式会自动与 Giscus iframe 主题同步。

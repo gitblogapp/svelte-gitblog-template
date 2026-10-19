@@ -42,6 +42,20 @@ To temporarily hide an already connected comment UI, use `PUBLIC_GISCUS_ENABLED=
 
 When comments are explicitly disabled, the harness clears the repository, IDs, and category name. It does not disable Discussions or uninstall any app. A separate comment repository is not supported by this launch flow because the existing workflow's `GITHUB_TOKEN` cannot sync discussions in another repository.
 
+## Verify the comment provider
+
+`PUBLIC_GISCUS_ENABLED=true` controls visibility only. `site:setup` and `site:configure` report `commentsIntegration.status: "not_verified"` even when the repository IDs and Discussions are ready. The author's `gh` login or PAT and the workflow's `GITHUB_TOKEN` do not grant a separate provider App access.
+
+For the default `PUBLIC_GISCUS_PROVIDER=gitblog` and `PUBLIC_GISCUS_HOST=https://gitblog.app`:
+
+1. Open [GitBlog App setup](https://github.com/apps/gitblog-app/installations/new). The repository owner selects the blog's owner/organization and adds the actual blog repository to the installation. An installation limited to selected repositories does not automatically cover a newly created blog. Ask the owner to approve any required access; do not grant or broaden it silently.
+2. Confirm the installation has Discussions write permission and that the repository is public with Discussions enabled. Installing the upstream giscus App is not a substitute for the GitBlog App used by this host.
+3. After deployment, open the real article, scroll to comments, and verify that the widget loads its discussion or a legitimate empty-discussion state. An App setup notice means access is still missing. A 500 is a provider error, not proof that `PUBLIC_GISCUS_ENABLED` is off. Report comment readiness separately from a successful build or deployment.
+
+For an explicitly chosen upstream provider (`giscus` / `https://giscus.app`), use [giscus configuration](https://giscus.app/) and that provider's App instead. Preserve the chosen host; do not switch providers to hide an access error.
+
+The Related panel is independent. `PUBLIC_RELATED_ENABLED=true` permits loading it, but the panel stays hidden while loading, when no relevant indexed articles match, or on a service error. Verify the recommendation response for the actual repository, original post ID, and locale before diagnosing a missing panel. An HTTP 200 with `items: []` and `emptyReason: "no-matches"` is an empty result, not a toggle failure; do not insert unrelated articles to fill it.
+
 ## Apply the answers and enable Discussions
 
 Save the user's choices as JSON in the ignored `.gitblog/work/setup.json` directory. For example, after the user chooses these settings:

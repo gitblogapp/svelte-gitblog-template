@@ -436,9 +436,10 @@ npm run build
 
 Setup:
 
-1. Enable GitHub Discussions for the repository.
-2. Select the repository and category at [giscus.app](https://giscus.app).
-3. Copy `repo`, `repoId`, `category`, and `categoryId` into `.env.production`.
+1. Enable GitHub Discussions and resolve repository/category IDs using the [setup harness](setup.md).
+2. For the default GitBlog provider (`PUBLIC_GISCUS_PROVIDER=gitblog`, `PUBLIC_GISCUS_HOST=https://gitblog.app`), include the blog repository in the [GitBlog App installation](https://github.com/apps/gitblog-app/installations/new) and approve Discussions access. A PAT does not grant the App access.
+3. Only when explicitly using the upstream giscus provider, configure its App at [giscus.app](https://giscus.app). Do not mix one provider's host with the other provider's App.
+4. Verify the widget on the deployed article as described in [provider verification](setup.md#verify-the-comment-provider).
 
 The site theme toggle synchronizes automatically with the Giscus iframe theme.
 

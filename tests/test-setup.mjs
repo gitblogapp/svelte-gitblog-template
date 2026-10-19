@@ -108,9 +108,13 @@ try {
 	assert.ok(apiCalls.every((call) => call.method === 'GET'));
 	const resolved = await inspect(answers);
 	assert.equal(resolved.stage, 'ready');
+	assert.equal(resolved.commentsIntegration.status, 'not_verified');
+	assert.ok(resolved.warnings.some((message) => message.includes('gh/PAT')));
 	assert.equal(resolved.proposed.PUBLIC_GISCUS_REPO_ID, 'R_repo');
 	assert.equal(resolved.proposed.PUBLIC_GISCUS_CATEGORY_ID, 'D_announcement');
-	assert.equal((await apply(answers)).applied, true);
+	const appliedWithComments = await apply(answers);
+	assert.equal(appliedWithComments.applied, true);
+	assert.equal(appliedWithComments.commentsIntegration.status, 'not_verified');
 	assert.equal(await read('static/CNAME'), 'notes.alice.dev\n');
 	const configured = await read('.env.production');
 	assert.equal(parseEnv(configured).PUBLIC_SITE_TITLE, "Alice's # Notes");

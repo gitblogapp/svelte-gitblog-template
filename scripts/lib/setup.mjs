@@ -231,6 +231,9 @@ export async function inspectSetup(
 		for (const key of setupKeys.filter((key) => key.startsWith('PUBLIC_GISCUS_')))
 			proposed[key] = '';
 	} else if (comments === 'enabled') {
+		warnings.push(
+			'Comment provider App access is not verified. gh/PAT access and Discussions activation do not authorize the provider App. Follow docs/gitblog/setup.md#verify-the-comment-provider before reporting comments ready.'
+		);
 		proposed.PUBLIC_GISCUS_REPO = repository;
 		proposed.PUBLIC_GISCUS_REPO_ID = repo.node_id;
 		if (
@@ -316,6 +319,15 @@ export async function inspectSetup(
 		repository,
 		proposed,
 		comments,
+		commentsIntegration: {
+			status:
+				comments === 'enabled'
+					? 'not_verified'
+					: comments === 'disabled'
+						? 'disabled'
+						: 'not_configured',
+			guide: 'docs/gitblog/setup.md#verify-the-comment-provider'
+		},
 		discussions: {
 			enabled: Boolean(repo.has_discussions),
 			enableRequired: enableDiscussions,
