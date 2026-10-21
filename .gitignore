@@ -28,3 +28,6 @@ vite.config.ts.timestamp-*
 # Python history runner
 __pycache__/
 *.pyc
+
+.cache/supertonic3/
+**/__pycache__/

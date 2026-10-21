@@ -115,3 +115,10 @@ export function bodyExcerptXml(text: string, budget: number): string {
 	}
 	return low >= 40 ? field(chars.slice(0, low).join('').trimEnd() + '…') : '';
 }
+
+export function createSpokenText(markdown: string): string {
+	return paragraphs(marked.lexer(markdown))
+		.map((block) => block.text)
+		.join('\n\n')
+		.trim();
+}

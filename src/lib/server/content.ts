@@ -1,3 +1,5 @@
+import { ttsEnabled, ttsVoice, audioEntry, rawAudio } from './tts';
+import { createSpokenText } from './body-excerpt';
 import {
 	resolvePostTaxonomy,
 	validateTaxonomy,
@@ -77,6 +79,8 @@ const taxonomy = Object.values(taxonomyFiles)[0] as Taxonomy | undefined;
 if (taxonomy) validateTaxonomy(taxonomy);
 
 type Frontmatter = {
+	tts?: boolean;
+	ttsVoice?: string;
 	id?: string;
 	title?: string;
 	description?: string;
@@ -90,6 +94,9 @@ type Frontmatter = {
 };
 
 type ParsedPost = {
+	ttsEnabled: boolean;
+	ttsVoice: string;
+	audioUrl: string | null;
 	id: string;
 	locale: Locale;
 	sourceLocale: Locale;
@@ -293,6 +300,14 @@ const parsePost = (
 		excerpt: createExcerpt(frontmatter.description, content),
 		bodyExcerpt: createBodyExcerpt(content),
 		markdown: content,
+		ttsEnabled: ttsEnabled(frontmatter.tts),
+		ttsVoice: ttsVoice(frontmatter.ttsVoice),
+		audioUrl: ttsEnabled(frontmatter.tts)
+			? rawAudio(
+					audioEntry(id, locale, ttsVoice(frontmatter.ttsVoice), createSpokenText(content))
+						?.fullPath || ''
+				)
+			: null,
 		giscusTerm: createGiscusTerm(id),
 		html: marked.parse(content) as string,
 		timestamp
@@ -354,6 +369,9 @@ for (const [locale, posts] of postsByLocale) {
 }
 
 const toSummary = (post: ParsedPost): PostSummary => ({
+	ttsEnabled: post.ttsEnabled,
+	ttsVoice: post.ttsVoice,
+	audioUrl: post.audioUrl,
 	id: post.id,
 	locale: post.locale,
 	sourceLocale: post.sourceLocale,

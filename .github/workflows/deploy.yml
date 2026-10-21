@@ -26,7 +26,7 @@ jobs:
     if: github.event.repository.is_template != true
     runs-on: ubuntu-latest
     outputs:
-      commit_sha: ${{ steps.deployment-commit.outputs.sha }}
+      commit_sha: ${{ steps.audio-commit.outputs.sha || steps.deployment-commit.outputs.sha }}
       hub_enabled: ${{ steps.hub-settings.outputs.enabled }}
       hub_url: ${{ steps.hub-settings.outputs.hub_url }}
 
@@ -152,6 +152,64 @@ jobs:
           GITHUB_ACTIONS: 'true'
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+
+      - name: Inspect TTS work
+        id: tts
+        run: node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('build/.well-known/tts-input.json'));fs.appendFileSync(process.env.GITHUB_OUTPUT,'enabled='+d.posts.some(p=>p.enabled)+'\n')"
+
+      - name: Setup Python for CPU speech
+        if: steps.tts.outputs.enabled == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: scripts/tts/requirements.txt
+
+      - name: Cache pinned Supertonic model
+        if: steps.tts.outputs.enabled == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .cache/supertonic3
+          key: supertonic3-aafc6e32416a594460b32413efc49d7fe4ce6d46
+
+      - name: Generate repository audio
+        if: steps.tts.outputs.enabled == 'true'
+        continue-on-error: true
+        timeout-minutes: 30
+        run: |
+          python -m pip install -r scripts/tts/requirements.txt
+          sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          python scripts/tts/setup.py
+          python scripts/tts/generate.py
+        env:
+          TTS_THREADS: '2'
+
+      - name: Persist generated audio
+        if: steps.tts.outputs.enabled == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/audio
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(audio): generate article speech [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Record audio commit
+        id: audio-commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Rebuild with available audio
+        if: steps.tts.outputs.enabled == 'true'
+        run: npm run build
+        env:
+          GITBLOG_BUILD_COMMIT: ${{ steps.audio-commit.outputs.sha }}
+          GITHUB_ACTIONS: 'true'
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+
+      - name: Keep speech inputs and files out of Pages
+        run: rm -f build/.well-known/tts-input.json
 
       - name: Verify feed manifest
         run: test -f build/.well-known/blog-hub.json

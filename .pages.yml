@@ -44,6 +44,14 @@ content:
       - name: published
         label: Published
         type: boolean
+      - name: tts
+        label: Generate article audio
+        type: boolean
+      - name: ttsVoice
+        label: TTS voice (blank uses blog default)
+        type: select
+        options:
+          values: [F1, F2, F3, F4, F5, M1, M2, M3, M4, M5]
       - name: category
         label: Category
         type: reference

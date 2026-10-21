@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { cp, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -56,6 +57,8 @@ title: Preservation fixture
 description: Test user extensions and project page assets.
 date: 2026-01-01
 published: true
+tts: true
+ttsVoice: F2
 cover: /uploads/preservation-fixture.svg
 ---
 ## Fixture heading
@@ -78,6 +81,29 @@ published: true
 ---
 Another article in this blog.
 `
+	);
+	const speech = 'Fixture heading\n\nUser content stays unchanged.';
+	const speechHash = createHash('sha256').update(speech).digest('hex');
+	const audioPath = `content/audio/${'a'.repeat(64)}.mp3`;
+	await mkdir(path.join(fixture, 'content/audio'), { recursive: true });
+	await writeFile(path.join(fixture, audioPath), 'fixture-audio');
+	await writeFile(
+		path.join(fixture, 'content/audio/manifest.json'),
+		JSON.stringify({
+			version: 1,
+			posts: [
+				{
+					postId: '32ac91be-2d4a-4e0a-a83f-a944fbf126d0',
+					locale: 'en',
+					voice: 'F2',
+					textHash: speechHash,
+					fullHash: speechHash,
+					previewPath: audioPath,
+					fullPath: audioPath,
+					version: 'supertonic3-v1'
+				}
+			]
+		})
 	);
 	const protectedPaths = [
 		'content',
@@ -126,6 +152,17 @@ Another article in this blog.
 		)
 	);
 	assert.ok(Buffer.byteLength(rss) <= 2 * 1024 * 1024);
+	const speechInput = JSON.parse(
+		await readFile(path.join(fixture, 'build/.well-known/tts-input.json'), 'utf8')
+	);
+	const speechEntry = speechInput.posts.find(
+		(p) => p.postId === '32ac91be-2d4a-4e0a-a83f-a944fbf126d0'
+	);
+	assert.equal(speechEntry.text, speech);
+	assert.equal(speechEntry.voice, 'F2');
+	assert.equal(speechEntry.textHash, speechHash);
+	assert.ok(speechEntry.previewUrl.endsWith(audioPath));
+	await assert.rejects(readFile(path.join(fixture, 'build', audioPath)));
 	const home = await readFile(path.join(fixture, 'build/index.html'), 'utf8');
 	assert.equal((home.match(/data-user-extension="preserved"/g) ?? []).length, 1);
 	assert.match(home, /name="google-site-verification" content="preservation-fixture"/);
@@ -153,6 +190,8 @@ Another article in this blog.
 		path.join(fixture, 'build/blog/preservation-fixture/index.html'),
 		'utf8'
 	);
+	assert.ok(article.includes('<audio'));
+	assert.ok(article.includes('raw.githubusercontent.com/fixture/current-fork/main/content/audio/'));
 	assert.equal((article.match(/data-user-extension="preserved"/g) ?? []).length, 3);
 	assert.ok(article.includes('class="related-boundary"'));
 	assert.ok(

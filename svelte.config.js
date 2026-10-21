@@ -21,7 +21,13 @@ const config = {
 			assets: 'build'
 		}),
 		prerender: {
-			entries: ['*', '/.well-known/blog-hub.json', '/.well-known/ai-discovery.json'],
+			entries: [
+				'*',
+				'/.well-known/blog-hub.json',
+				'/.well-known/ai-discovery.json',
+				'/.well-known/tts-input.json',
+				'/.well-known/tts.json'
+			],
 			handleUnseenRoutes: ({ routes, message }) => {
 				// Dynamic post routes have no entries in a new blog or when every post is a draft.
 				const unexpectedRoutes = routes.filter(

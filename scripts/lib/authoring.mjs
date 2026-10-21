@@ -145,7 +145,17 @@ function protectedMarkdown(content) {
 
 export function translationErrors(source, translated, locale, sourceLocale, stamped = true) {
 	const errors = [];
-	for (const key of ['id', 'date', 'updated', 'published', 'category', 'tags', 'cover']) {
+	for (const key of [
+		'id',
+		'date',
+		'updated',
+		'published',
+		'category',
+		'tags',
+		'cover',
+		'tts',
+		'ttsVoice'
+	]) {
 		if (JSON.stringify(source.data[key] ?? null) !== JSON.stringify(translated.data[key] ?? null))
 			errors.push(`must preserve source ${key}`);
 	}
@@ -176,6 +186,9 @@ export async function postErrors(root, post) {
 			errors.push(`${key} must be nonempty text`);
 	if (!validDate(data.date)) errors.push('date is missing or invalid');
 	if (data.updated != null && !validDate(data.updated)) errors.push('updated is invalid');
+	if (data.tts != null && typeof data.tts !== 'boolean') errors.push('tts must be a boolean');
+	if (data.ttsVoice && (typeof data.ttsVoice !== 'string' || !/^[FM][1-5]$/.test(data.ttsVoice)))
+		errors.push('ttsVoice must be F1–F5 or M1–M5');
 	if (data.published != null && typeof data.published !== 'boolean')
 		errors.push('published must be a boolean');
 	if (data.category != null && typeof data.category !== 'string')

@@ -853,6 +853,8 @@ const translatePost = async (sourceFile, sourceRaw, sourceHash, targetLocale, la
 		description: translatedMeta[1],
 		date,
 		published: data.published !== false,
+		...(typeof data.tts === 'boolean' ? { tts: data.tts } : {}),
+		...(typeof data.ttsVoice === 'string' ? { ttsVoice: data.ttsVoice } : {}),
 		category:
 			typeof data.category === 'string' && data.category.trim() !== '' ? data.category : 'Notes',
 		tags: normalizeTags(data.tags),
