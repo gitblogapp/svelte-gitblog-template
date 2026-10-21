@@ -58,14 +58,14 @@ def main():
     job = json.loads(pending.read_text())
     pending.unlink()
     start = time.monotonic()
-    for _ in range(20):
+    for index in range(20):
         try:
             audio = synthesize(job['text'], job['locale'], job['voice'], preview=True)
             api('result', job, audio)
         except Exception as error:
             print(f'::warning::Speech job failed ({type(error).__name__})', file=sys.stderr)
             api('failed', job)
-        if time.monotonic() - start > 600:
+        if index == 19 or time.monotonic() - start > 600:
             break
         job = api('claim')
         if not job:
