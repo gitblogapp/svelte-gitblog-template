@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { audioCopy, audioTime } from './audio-copy';
+	import PlaybackSpeed from './PlaybackSpeed.svelte';
 	let { src, locale = 'en' }: { src: string; locale?: string } = $props();
 	const copy = $derived(audioCopy(locale));
 	let media: HTMLAudioElement;
@@ -53,28 +54,14 @@
 			media.currentTime = position;
 		}
 	}
-	function changeSpeed(event: Event) {
-		speed = Number((event.currentTarget as HTMLSelectElement).value);
+	function changeSpeed(value: number) {
+		speed = value;
 		media.playbackRate = speed;
 	}
 </script>
 
 <section class="article-audio" data-pagefind-ignore aria-label={copy.title}>
-	<div class="heading">
-		<div class="titles">
-			<span class="eyebrow">{copy.eyebrow}</span>
-			<p>{copy.title}</p>
-		</div>
-		<svg
-			class="sound-mark"
-			viewBox="0 0 36 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			aria-hidden="true"><path d="M4 10v4m7-10v16m7-13v10m7-16v22m7-13v4" /></svg
-		>
-	</div>
+	<span class="sr-only">{copy.eyebrow}</span>
 	<audio
 		bind:this={media}
 		{src}
@@ -144,9 +131,7 @@
 					<span>{audioTime(position)}</span><span>{audioTime(duration)}</span>
 				</div>
 			</div>
-			<select aria-label={copy.speed} value={speed} onchange={changeSpeed}>
-				{#each [0.75, 1, 1.25, 1.5, 2] as rate (rate)}<option value={rate}>{rate}×</option>{/each}
-			</select>
+			<PlaybackSpeed value={speed} label={copy.speed} onChange={changeSpeed} />
 		</div>
 		<span class:feedback={failed} class:sr-only={!failed} role="status"
 			>{failed ? copy.error : loading ? copy.loading : ''}</span
@@ -157,48 +142,21 @@
 <style>
 	.article-audio {
 		margin: 0 0 2rem;
-		padding: 1.25rem 1.4rem;
+		padding: 10px 12px;
 		border: 1px solid var(--border-light);
-		border-radius: 12px;
+		border-radius: 10px;
 		background: var(--bg-component);
 		color: var(--text);
 		font-family: 'Inter', sans-serif;
 	}
-	.heading {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1.1rem;
-	}
-	.eyebrow {
-		display: block;
-		color: var(--text-dim);
-		font-size: 0.625rem;
-		font-weight: 600;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-	}
-	.titles p {
-		margin: 0.3rem 0 0;
-		font-size: 0.875rem;
-		font-weight: 500;
-		line-height: 1.5;
-	}
-	.sound-mark {
-		width: 36px;
-		height: 24px;
-		flex-shrink: 0;
-		color: var(--text-light);
-	}
 	.controls {
 		display: flex;
-		gap: 1rem;
+		gap: 12px;
 		align-items: center;
 	}
 	.play {
-		width: 44px;
-		height: 44px;
+		width: 36px;
+		height: 36px;
 		flex-shrink: 0;
 		display: grid;
 		place-items: center;
@@ -214,8 +172,8 @@
 		opacity: 0.8;
 	}
 	.play svg {
-		width: 20px;
-		height: 20px;
+		width: 17px;
+		height: 17px;
 		fill: currentColor;
 	}
 	.pause {
@@ -283,23 +241,8 @@
 		color: var(--text-dim);
 		font-variant-numeric: tabular-nums;
 	}
-	select {
-		width: 66px;
-		min-height: 36px;
-		flex-shrink: 0;
-		margin: 0;
-		padding: 0 4px;
-		border: 1px solid var(--border-dim);
-		border-radius: 6px;
-		color: var(--text);
-		background: var(--bg-component);
-		font: inherit;
-		font-size: 0.75rem;
-		cursor: pointer;
-	}
 	button:focus-visible,
-	input:focus-visible,
-	select:focus-visible {
+	input:focus-visible {
 		outline: 2px solid var(--primary);
 		outline-offset: 4px;
 	}
@@ -326,10 +269,10 @@
 	}
 	@media (max-width: 480px) {
 		.article-audio {
-			padding: 1rem;
+			padding: 8px 10px;
 		}
 		.controls {
-			gap: 0.75rem;
+			gap: 10px;
 		}
 	}
 </style>

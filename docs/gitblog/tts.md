@@ -82,7 +82,9 @@ their owner's included minutes and any configured billing. See
 ## Article player
 
 The full-article player follows the blog's existing light/dark theme tokens. It offers
-play/pause, an accessible seek bar, elapsed/total time and 0.75×–2× playback speed.
+a compact control row with play/pause, an accessible seek bar, elapsed/total time
+and a themed 0.75×–2× playback-speed menu. Use arrow keys to navigate the menu,
+Enter/Space to choose, and Escape to close it. Clicking outside also closes it.
 Controls use the article's UI language. Audio loads only after play; articles do not
 autoplay. Without JavaScript the browser's native controls remain available. Leaving
 an article stops its audio. A failed load can be retried with the play button.
