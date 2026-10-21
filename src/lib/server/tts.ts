@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/public';
 import { createHash } from 'node:crypto';
+import { speechLocale } from '$lib/tts-locale';
 const files = import.meta.glob('/content/audio/manifest.json', { eager: true, import: 'default' });
 type AudioEntry = {
 	postId: string;
@@ -22,6 +23,7 @@ export const ttsEnabled = (value: unknown) =>
 	typeof value === 'boolean' ? value : env.PUBLIC_TTS_ENABLED === 'true';
 export const ttsHash = (text: string) => createHash('sha256').update(text).digest('hex');
 export function audioEntry(id: string, locale: string, voice: string, fullText: string) {
+	if (!speechLocale(locale)) return undefined;
 	return manifest?.posts?.find(
 		(x) =>
 			x.postId === id &&

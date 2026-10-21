@@ -145,17 +145,8 @@ function protectedMarkdown(content) {
 
 export function translationErrors(source, translated, locale, sourceLocale, stamped = true) {
 	const errors = [];
-	for (const key of [
-		'id',
-		'date',
-		'updated',
-		'published',
-		'category',
-		'tags',
-		'cover',
-		'tts',
-		'ttsVoice'
-	]) {
+	// TTS settings are inherited from the source at build time, not translated metadata.
+	for (const key of ['id', 'date', 'updated', 'published', 'category', 'tags', 'cover']) {
 		if (JSON.stringify(source.data[key] ?? null) !== JSON.stringify(translated.data[key] ?? null))
 			errors.push(`must preserve source ${key}`);
 	}

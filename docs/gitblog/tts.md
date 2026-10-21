@@ -23,6 +23,22 @@ player. This does not suppress GitBlog's separate narration of the indexed excer
 Korean, English and Japanese are supported; Supertonic 3 does not support Chinese.
 Unsupported languages continue to publish as text.
 
+## Translated posts
+
+Both DeepL and manual translations generate excerpt and full audio in the translated
+page's language. Every translation inherits the source post's TTS switch and voice,
+including older translations without TTS frontmatter. Copied translation TTS fields
+do not override the source. Normal manual translation acceptance/freshness checks
+still apply; the speech build never edits or translates Markdown.
+
+The pinned model supports these language codes:
+`ar bg hr cs da nl en et fi fr de el hi hu id it ja ko lv lt pl pt ro ru sk sl es sv tr uk vi`.
+Regional variants such as `en-US` and `pt-BR` use their base language. Each page is
+checked independently: an unsupported source language can have supported translations.
+Unsupported pages publish `enabled: false` with no audio URLs, do not generate files,
+and show no player, even if an old manifest contains audio. Text remains available.
+The allowlist shared by the build and CPU engine is `scripts/tts/languages.json`.
+
 ## Build and storage
 
 The deployment first builds the final RSS excerpt, then generates excerpt and full

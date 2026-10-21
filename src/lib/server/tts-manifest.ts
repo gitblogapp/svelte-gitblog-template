@@ -1,4 +1,5 @@
 import { getConfiguredLocales } from '$lib/locales';
+import { speechLocale } from '$lib/tts-locale';
 import { getFeedPosts, getPublishedMarkdown } from './content';
 import { createRssResponse } from './rss';
 import { createSpokenText } from './body-excerpt';
@@ -26,14 +27,13 @@ export async function speechManifest(includeInput = false) {
 					.trim() || post.excerpt.replace(/\s+/g, ' ').trim();
 			const text = Array.from(preview).slice(0, 1200).join('');
 			const fullText = createSpokenText(getPublishedMarkdown(post.slug, locale) || '');
-			const audio = post.ttsEnabled
-				? audioEntry(post.id, locale, post.ttsVoice, fullText)
-				: undefined;
+			const enabled = post.ttsEnabled && speechLocale(locale) !== null;
+			const audio = enabled ? audioEntry(post.id, locale, post.ttsVoice, fullText) : undefined;
 			const hash = ttsHash(text);
 			entries.push({
 				postId: post.id,
 				locale,
-				enabled: post.ttsEnabled,
+				enabled,
 				voice: post.ttsVoice,
 				textHash: hash,
 				previewUrl: audio?.textHash === hash ? rawAudio(audio.previewPath) : null,

@@ -226,7 +226,8 @@ const parsePost = (
 	path: string,
 	source: string,
 	locale: Locale,
-	expectedPostId?: string
+	expectedPostId?: string,
+	sourceSpeech?: Pick<ParsedPost, 'ttsEnabled' | 'ttsVoice'>
 ): ParsedPost => {
 	const slug = toSlug(path);
 	const { content, data } = matter(source);
@@ -281,6 +282,10 @@ const parsePost = (
 				locale
 			)
 		: undefined;
+	// Translations may predate TTS or contain stale copies of these settings.
+	// Inherit policy only; model support is checked for each locale independently.
+	const speechEnabled = sourceSpeech?.ttsEnabled ?? ttsEnabled(frontmatter.tts);
+	const speechVoice = sourceSpeech?.ttsVoice ?? ttsVoice(frontmatter.ttsVoice);
 	return {
 		id,
 		locale,
@@ -300,13 +305,10 @@ const parsePost = (
 		excerpt: createExcerpt(frontmatter.description, content),
 		bodyExcerpt: createBodyExcerpt(content),
 		markdown: content,
-		ttsEnabled: ttsEnabled(frontmatter.tts),
-		ttsVoice: ttsVoice(frontmatter.ttsVoice),
-		audioUrl: ttsEnabled(frontmatter.tts)
-			? rawAudio(
-					audioEntry(id, locale, ttsVoice(frontmatter.ttsVoice), createSpokenText(content))
-						?.fullPath || ''
-				)
+		ttsEnabled: speechEnabled,
+		ttsVoice: speechVoice,
+		audioUrl: speechEnabled
+			? rawAudio(audioEntry(id, locale, speechVoice, createSpokenText(content))?.fullPath || '')
 			: null,
 		giscusTerm: createGiscusTerm(id),
 		html: marked.parse(content) as string,
@@ -357,7 +359,7 @@ for (const [path, source] of Object.entries(translatedPostFiles)) {
 	if (!sourcePost.published) continue;
 
 	const posts = postsByLocale.get(locale) ?? [];
-	posts.push(parsePost(path, source, locale, sourcePost.id));
+	posts.push(parsePost(path, source, locale, sourcePost.id, sourcePost));
 	postsByLocale.set(locale, posts);
 }
 

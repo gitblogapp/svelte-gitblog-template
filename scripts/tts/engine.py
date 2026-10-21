@@ -4,15 +4,15 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent / 'vendor'))
 import numpy as np
 import soundfile as sf
 from helper import load_text_to_speech, load_voice_style
+from languages import LANGUAGES, speech_locale
 MODEL_VERSION = 'supertonic3-v1'
 VOICES = [f'{gender}{n}' for gender in ['F','M'] for n in range(1,6)]
-LANGUAGES = 'ar bg hr cs da nl en et fi fr de el hi hu id it ja ko lv lt pl pt ro ru sk sl es sv tr uk vi'.split()
 _model = None
 _styles = {}
 def synthesize(text, locale='en', voice='F1', preview=True):
     global _model
-    lang = locale.lower().split('-')[0]
-    if lang not in LANGUAGES or voice not in VOICES: raise ValueError('Unsupported speech language or voice')
+    lang = speech_locale(locale)
+    if lang is None or voice not in VOICES: raise ValueError('Unsupported speech language or voice')
     if not text.strip() or len(text) > (1200 if preview else 60000): raise ValueError('Speech text size is outside the limit')
     root = pathlib.Path(os.environ.get('TTS_MODEL_DIR', '.cache/supertonic3'))
     if _model is None: _model = load_text_to_speech(str(root / 'onnx'), False)

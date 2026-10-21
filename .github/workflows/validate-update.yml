@@ -22,6 +22,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:authoring:build
+      - run: npm run test:tts
       - run: npm run update:check
         env:
           PUBLIC_SITE_URL: https://blog.gitblog.app

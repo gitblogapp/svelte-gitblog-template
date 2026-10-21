@@ -1,13 +1,14 @@
 """Generate only changed published audio; failures leave text publication usable."""
 import hashlib, json, pathlib, sys
-from engine import synthesize, MODEL_VERSION, LANGUAGES
+from languages import speech_locale
 root=pathlib.Path('content/audio');root.mkdir(parents=True,exist_ok=True)
 manifest=root/'manifest.json'
-old=json.loads(manifest.read_text()) if manifest.exists() else {'posts':[]}
 inputs=json.loads(pathlib.Path('build/.well-known/tts-input.json').read_text())
 result=[]; failures=0
 for post in inputs['posts']:
-    if not post['enabled'] or post['locale'].split('-')[0] not in LANGUAGES: continue
+    if not post['enabled'] or speech_locale(post['locale']) is None: continue
+    # Unsupported-only builds do not initialize inference dependencies or the model.
+    from engine import synthesize, MODEL_VERSION
     entry={k:post[k] for k in ['postId','locale','textHash','fullHash','voice']};entry['version']=MODEL_VERSION
     try:
         for kind,text in [('preview',post['text']),('full',post['fullText'])]:
