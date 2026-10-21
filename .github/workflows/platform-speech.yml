@@ -26,7 +26,9 @@ jobs:
           python-version: '3.11'
       - name: Check for pending work before downloading the model
         id: queue
-        run: python scripts/tts/platform-worker.py claim
+        run: |
+          python -m unittest discover -s tests/tts
+          python scripts/tts/platform-worker.py claim
       - uses: actions/cache@v4
         if: steps.queue.outputs.pending == 'true'
         with:
