@@ -21,15 +21,21 @@ def identity():
         return json.load(response)['value']
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def api(action, job=None, audio=None):
     query = '' if job is None else '?' + urllib.parse.urlencode({
         'post': job['post_id'], 'locale': job['locale'], 'lease': job['lease_token']})
     req = urllib.request.Request(BASE + action + query, data=audio or b'',
                                  method='PUT' if audio is not None else 'POST', headers={
         'Authorization': 'Bearer ' + identity(),
+        'User-Agent': 'gitblog-speech',
         'Content-Type': 'audio/mpeg' if audio is not None else 'application/json'})
     try:
-        with urllib.request.urlopen(req, timeout=60) as response:
+        with urllib.request.build_opener(NoRedirect).open(req, timeout=60) as response:
             return json.load(response) if action == 'claim' and response.status == 200 else None
     except urllib.error.HTTPError as error:
         # A newer feed or another lease superseded this result. Never overwrite it.
