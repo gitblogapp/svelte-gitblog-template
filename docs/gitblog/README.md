@@ -13,6 +13,7 @@ the blog owner and can be rewritten without changing the harness. Put personal r
 | Translate tags/categories or unify tag search           | [Multilingual taxonomy](taxonomy.md)                                                                   |
 | Write, translate, validate, or publish posts            | [Authoring](authoring.md) and [writing guidelines](llm-writing-guidelines.md)                          |
 | Configure features, comments, search, analytics, or CMS | [Template reference](reference.md)                                                                     |
+| Optimize uploaded images at build time | [Image optimization](images.md) |
 | Generate article and Shorts narration | [Speech / TTS](tts.md) |
 | Configure AI/search discovery                           | [AI discovery](ai-discovery.md)                                                                        |
 | Customize or update the template                        | [Customization and preservation](customization.md)                                                     |

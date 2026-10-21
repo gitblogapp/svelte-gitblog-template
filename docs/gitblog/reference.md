@@ -71,7 +71,7 @@ Keep `PUBLIC_TRANSLATION_LOCALES` configured for localized pages and GitBlog fee
 - `content/translations/<locale>/site.json`: generated localized site copy
 - `content/translations/<locale>/posts/*.md`: generated localized posts
 - `static/assets/icons/`: bundled favicon and app icons
-- `static/uploads`: files uploaded through Pages CMS
+- `static/uploads`: files uploaded through Pages CMS; production builds optimize copies without changing originals or URLs. See [image optimization](images.md).
 - `scripts/`: build, deployment, and validation tools
 - `tests/`: regression and template integration tests
 

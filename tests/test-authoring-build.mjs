@@ -5,12 +5,14 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import sharp from 'sharp';
 import { snapshotPaths, changedPaths } from '../scripts/lib/preservation.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const fixture = await mkdtemp(path.join(os.tmpdir(), 'gitblog-manual-build-'));
 const excluded = new Set([
 	'.git',
+	'.cache',
 	'node_modules',
 	'.svelte-kit',
 	'build',
@@ -71,6 +73,14 @@ try {
 	]);
 	const sourceFile = path.join(fixture, 'content/posts/harness-check.md');
 	const { data } = matter(await readFile(sourceFile, 'utf8'));
+	await mkdir(path.join(fixture, 'static/uploads'), { recursive: true });
+	const originalImage = await sharp({
+		create: { width: 2400, height: 1200, channels: 3, background: '#947243' }
+	})
+		.jpeg({ quality: 100 })
+		.toBuffer();
+	await writeFile(path.join(fixture, 'static/uploads/build-test.jpg'), originalImage);
+	data.cover = '/uploads/build-test.jpg';
 	data.published = true;
 	data.category = '시장 분석';
 	data.tags = ['비트코인', 'bitcoin'];
@@ -128,6 +138,9 @@ try {
 	run(['scripts/sync-content.mjs', '--prepare']);
 	run(['scripts/sync-content.mjs']);
 	run(['run', 'build']);
+	const optimizedImage = await readFile(path.join(fixture, 'build/uploads/build-test.jpg'));
+	assert.ok(optimizedImage.length < originalImage.length);
+	assert.equal((await sharp(optimizedImage).metadata()).width, 1600);
 	assert.deepEqual(changedPaths(before, await snapshotPaths(fixture, protectedPaths)), []);
 	const manifest = JSON.parse(
 		await readFile(path.join(fixture, 'build/.well-known/blog-hub.json'), 'utf8')
@@ -154,6 +167,7 @@ try {
 			'utf8'
 		);
 		assert.ok(html.includes(title));
+		assert.ok(html.includes('/uploads/build-test.jpg'));
 		assert.ok(html.includes('hreflang="en"'));
 		assert.ok(rss.includes('<hub:taxonomy>'));
 		assert.ok(
@@ -175,6 +189,10 @@ try {
 	await assert.rejects(readFile(path.join(fixture, 'build/CNAME')), { code: 'ENOENT' });
 	env.PUBLIC_SITE_URL = 'https://notes.example.com';
 	run(['run', 'build']);
+	assert.deepEqual(
+		await readFile(path.join(fixture, 'build/uploads/build-test.jpg')),
+		optimizedImage
+	);
 	assert.equal(await readFile(path.join(fixture, 'build/CNAME'), 'utf8'), 'notes.example.com\n');
 	const customHtml = await readFile(
 		path.join(fixture, 'build/blog/harness-check/index.html'),

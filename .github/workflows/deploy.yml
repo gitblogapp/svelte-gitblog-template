@@ -48,6 +48,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore optimized image cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/gitblog-images
+          key: ${{ runner.os }}-gitblog-images-v1-${{ hashFiles('package-lock.json', 'scripts/optimize-images.mjs') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ runner.os }}-gitblog-images-v1-${{ hashFiles('package-lock.json', 'scripts/optimize-images.mjs') }}-
+
       - name: Validate launch configuration
         run: npm run site:check
 
