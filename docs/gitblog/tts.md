@@ -78,3 +78,16 @@ changing models. Voice samples are synthetic, without voice cloning.
 Standard hosted Actions are free for public repositories; private repositories use
 their owner's included minutes and any configured billing. See
 [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+
+## Article player
+
+The full-article player follows the blog's existing light/dark theme tokens. It offers
+play/pause, an accessible seek bar, elapsed/total time and 0.75×–2× playback speed.
+Controls use the article's UI language. Audio loads only after play; articles do not
+autoplay. Without JavaScript the browser's native controls remain available. Leaving
+an article stops its audio. A failed load can be retried with the play button.
+
+GitBlog Shorts uses a separate excerpt player: the square button beside the bookmark
+controls play/pause. It attempts autoplay for each active item and resets when leaving
+that item. Browsers may require an initial play-button tap before allowing audible
+autoplay. Full article audio remains in the user's repository, as described above.
