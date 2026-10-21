@@ -32,7 +32,7 @@ export function createSiteController(): SiteController {
 	const homePath = $derived(toHomePath(routeLocale));
 	const currentLocaleLabel = $derived(getLocaleLabel(routeLocale));
 	const hasLocaleSwitcher = $derived(localeOptions.length > 1);
-	const shouldShowLocaleMenu = $derived(localeOptions.length > 2);
+	const shouldShowLocaleMenu = $derived(hasLocaleSwitcher);
 	const pairedLocale = $derived(
 		localeOptions.length === 2
 			? (localeOptions.find((localeOption) => localeOption !== routeLocale) ?? null)
