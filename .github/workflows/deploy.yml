@@ -348,7 +348,7 @@ jobs:
   register:
     needs: [build, deploy]
     if: needs.build.outputs.hub_enabled == 'true'
-    uses: gitblogapp/svelte-gitblog-template/.github/workflows/register-blog.yml@5e94932e25fc5e048ff43cfe5b806579948a549c
+    uses: gitblogapp/svelte-gitblog-template/.github/workflows/register-blog.yml@6e99f3f720a7aaa51c6554ecb114456ca930ce46
     permissions:
       contents: read
       pages: read
