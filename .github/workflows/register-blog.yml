@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: gitblogapp/svelte-gitblog-template
-          ref: cc23d87e63f733a990f6196f01039a86238db074
+          ref: 81617561ceb40ddcb2da5893d6c3a7e7d19b46a3
           path: registration
           sparse-checkout: scripts/register-blog.mjs
           sparse-checkout-cone-mode: false
