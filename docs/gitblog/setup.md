@@ -1,5 +1,7 @@
 # First launch with an LLM
 
+For hosting selection or switching between GitHub Pages and Cloudflare Pages, read [Deployment settings](deployment.md) first. The GitHub Pages API/DNS instructions below apply only when `GITBLOG_DEPLOY_PROVIDER=github`.
+
 Before creating the first post or deploying a new blog, configure `.env.production` for the user's repository. The template's title, domain, repository, and language choices are examples, not user decisions. Read this guide when the user asks to launch a blog; ordinary post-writing tasks must preserve established site settings.
 
 The setup harness discovers repository facts, returns questions as JSON, applies the user's answers, enables Discussions for the chosen comments setting, and configures GitHub Pages. The LLM asks the questions in the conversation and passes the answers to the harness. The CLI deliberately does not wait for interactive terminal input.

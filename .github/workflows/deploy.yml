@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: Deploy blog
 
 on:
   push:
@@ -22,8 +22,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  # GITBLOG_DEPLOY_PROVIDER is read as data; never source .env files in a shell.
+  configuration:
     if: github.event.repository.is_template != true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      provider: ${{ steps.settings.outputs.provider }}
+      ready: ${{ steps.settings.outputs.ready }}
+      account_id: ${{ steps.settings.outputs.account_id }}
+      project_name: ${{ steps.settings.outputs.project_name }}
+      site_url: ${{ steps.settings.outputs.site_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - id: settings
+        run: node scripts/deployment-settings.mjs
+
+  build:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
     runs-on: ubuntu-latest
     outputs:
       commit_sha: ${{ steps.audio-commit.outputs.sha || steps.deployment-commit.outputs.sha }}
@@ -37,6 +58,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Pages
+        if: needs.configuration.outputs.provider == 'github'
         uses: actions/configure-pages@v5
 
       - name: Setup Node.js
@@ -259,15 +281,40 @@ jobs:
 
   deploy:
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
+      name: ${{ needs.configuration.outputs.provider == 'cloudflare' && 'cloudflare-pages' || 'github-pages' }}
+      url: ${{ steps.deployment.outputs.page_url || needs.configuration.outputs.site_url }}
+    needs: [configuration, build]
     runs-on: ubuntu-latest
 
     steps:
       - name: Deploy to GitHub Pages
+        if: needs.configuration.outputs.provider == 'github'
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Download static site for Cloudflare
+        if: needs.configuration.outputs.provider == 'cloudflare'
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/blog-artifact
+      - name: Setup Node.js for Cloudflare
+        if: needs.configuration.outputs.provider == 'cloudflare'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Deploy to own Cloudflare Pages account
+        if: needs.configuration.outputs.provider == 'cloudflare'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ needs.configuration.outputs.account_id }}
+          CF_PROJECT: ${{ needs.configuration.outputs.project_name }}
+          CF_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Add CLOUDFLARE_API_TOKEN in repository Actions Secrets."; exit 1; }
+          mkdir -p "$RUNNER_TEMP/blog-site"
+          tar -xf "$RUNNER_TEMP/blog-artifact/artifact.tar" -C "$RUNNER_TEMP/blog-site"
+          npx --yes wrangler@4.147.0 pages deploy "$RUNNER_TEMP/blog-site" --project-name "$CF_PROJECT" --branch "$CF_BRANCH"
 
   discovery:
     needs: [build, deploy]

@@ -29,7 +29,7 @@
 		"test:authoring:build": "node ./tests/test-authoring-build.mjs",
 		"translate:posts": "npm run translate:content",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "npm run test:images && npm run test:taxonomy && npm run test:discovery && npm run test:setup && npm run test:app-access && npm run test:authoring && npm run test:harness-docs && npm run author:check && npm run test:site-translations && npm run test:post-releases && npm run test:post-ids && npm run test:giscus-sync && npm run test:hub-hints && npm run test:preservation && npm run test:extensions && npm run test:analytics && npm run test:body-excerpt && npm run test:related-panel && npm run posts:ids:check && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "npm run test:deployment && npm run test:images && npm run test:taxonomy && npm run test:discovery && npm run test:setup && npm run test:app-access && npm run test:authoring && npm run test:harness-docs && npm run author:check && npm run test:site-translations && npm run test:post-releases && npm run test:post-ids && npm run test:giscus-sync && npm run test:hub-hints && npm run test:preservation && npm run test:extensions && npm run test:analytics && npm run test:body-excerpt && npm run test:related-panel && npm run posts:ids:check && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
@@ -58,7 +58,8 @@
 		"site:app:status": "node ./scripts/setup.mjs app-status",
 		"test:app-access": "node ./tests/test-app-access.mjs",
 		"images:optimize": "node ./scripts/optimize-images.mjs",
-		"test:images": "node --test tests/test-images.mjs"
+		"test:images": "node --test tests/test-images.mjs",
+		"test:deployment": "node ./tests/test-deployment.mjs"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",
@@ -72,6 +73,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.15.2",
 		"globals": "^17.4.0",
+		"js-yaml": "4.1.1",
 		"pagefind": "^1.5.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",

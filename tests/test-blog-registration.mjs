@@ -23,6 +23,7 @@ const fetcher = async (url, options) => {
 	url = String(url);
 	calls.push({ url, options });
 	if (url === 'https://api.github.com/repos/owner/blog') return Response.json(repo);
+	if (url.includes('/contents/.env.production?')) return new Response(null, { status: 404 });
 	if (url.endsWith('/pages')) return Response.json({ html_url: 'https://owner.github.io/blog/' });
 	if (url.startsWith('https://oidc.example/')) return Response.json({ value: 'signed-proof' });
 	if (url === 'https://gitblog.app/v1/ingestion/deploy-hint')
@@ -54,6 +55,34 @@ for (const changes of [
 	);
 }
 await assert.rejects(registerBlog({ ...env, GITBLOG_HUB_URL: 'http://example.com' }, fetcher));
+for (const siteUrl of ['https://personal-blog.pages.dev', 'https://notes.example.com']) {
+	const cfCalls = [];
+	await registerBlog(
+		env,
+		async (url, options) => {
+			url = String(url);
+			cfCalls.push({ url, options });
+			if (url.includes('/contents/.env.production?')) {
+				assert.ok(url.endsWith(env.GITBLOG_DEPLOYED_COMMIT));
+				return Response.json({
+					type: 'file',
+					encoding: 'base64',
+					size: 200,
+					content: Buffer.from(
+						`GITBLOG_DEPLOY_PROVIDER=cloudflare\nPUBLIC_SITE_URL=${siteUrl}\n`
+					).toString('base64')
+				});
+			}
+			return fetcher(url, options);
+		},
+		async () => {}
+	);
+	assert.ok(!cfCalls.some((call) => call.url.endsWith('/pages')));
+	assert.equal(
+		JSON.parse(cfCalls.find((call) => call.url.includes('/deploy-hint')).options.body).siteUrl,
+		`${siteUrl}/`
+	);
+}
 console.log(
 	'App-independent registration identity, provenance, retries and token isolation passed.'
 );

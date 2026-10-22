@@ -3,8 +3,12 @@ import { parseEnv } from 'node:util';
 import { spawnSync } from 'node:child_process';
 import { locales, safePath, writeContent } from './authoring.mjs';
 import { siteAddress, defaultPagesUrl } from './site-config.mjs';
+import { deploymentConfig } from './deployment-config.mjs';
 
 export const setupKeys = [
+	'GITBLOG_DEPLOY_PROVIDER',
+	'CLOUDFLARE_ACCOUNT_ID',
+	'CLOUDFLARE_PAGES_PROJECT',
 	'PUBLIC_SITE_TITLE',
 	'PUBLIC_SITE_URL',
 	'PUBLIC_SITE_REPOSITORY',
@@ -86,6 +90,11 @@ function validateAnswers(answers) {
 }
 export function validateSettings(env, repository) {
 	const errors = [];
+	try {
+		deploymentConfig(env);
+	} catch (error) {
+		errors.push(error.message);
+	}
 	for (const key of [
 		'PUBLIC_SITE_TITLE',
 		'PUBLIC_SITE_URL',
@@ -138,7 +147,7 @@ export async function checkSetup(root, repository = originRepository(root)) {
 	try {
 		address = siteAddress(env.PUBLIC_SITE_URL);
 		const cname = (await readOptional(root, 'static/CNAME')).trim();
-		if (cname !== (address.cname ?? ''))
+		if (env.GITBLOG_DEPLOY_PROVIDER !== 'cloudflare' && cname !== (address.cname ?? ''))
 			errors.push('static/CNAME does not match PUBLIC_SITE_URL; run site:configure');
 	} catch {
 		/* Reported by validateSettings. */
@@ -185,7 +194,8 @@ export async function inspectSetup(
 	const repo = await repositoryInfo(repository, api);
 	let pages;
 	try {
-		pages = await getPages(repository, api);
+		pages =
+			proposed.GITBLOG_DEPLOY_PROVIDER === 'cloudflare' ? null : await getPages(repository, api);
 	} catch {
 		warnings.push(
 			'Could not read Pages settings. Check Pages permissions before configuring deployment.'
@@ -205,7 +215,9 @@ export async function inspectSetup(
 		PUBLIC_SITE_URL:
 			proposed.PUBLIC_SITE_URL && proposed.PUBLIC_SITE_URL !== 'https://blog.gitblog.app'
 				? proposed.PUBLIC_SITE_URL
-				: pages?.html_url || defaultPagesUrl(repository),
+				: proposed.GITBLOG_DEPLOY_PROVIDER === 'cloudflare'
+					? ''
+					: pages?.html_url || defaultPagesUrl(repository),
 		PUBLIC_SOURCE_LOCALE: proposed.PUBLIC_SOURCE_LOCALE || 'en',
 		PUBLIC_TRANSLATION_LOCALES: proposed.PUBLIC_TRANSLATION_LOCALES
 	};
@@ -415,7 +427,8 @@ export async function applySetup(
 	const address = siteAddress(plan.proposed.PUBLIC_SITE_URL);
 	await checkUnchanged();
 	await writeContent(root, '.env.production', raw);
-	if (address.cname) await writeContent(root, 'static/CNAME', `${address.cname}\n`);
+	if (address.cname && plan.proposed.GITBLOG_DEPLOY_PROVIDER !== 'cloudflare')
+		await writeContent(root, 'static/CNAME', `${address.cname}\n`);
 	else await rm(await safePath(root, 'static/CNAME'), { force: true });
 	await writeContent(
 		root,
@@ -466,6 +479,30 @@ export async function configurePages(
 	if (!check.ok) throw new Error(check.errors.join('\n'));
 	await repositoryInfo(repository, api);
 	const { env } = await readSettings(root);
+	const hosting = deploymentConfig(env);
+	if (hosting.provider === 'cloudflare') {
+		// Secrets API returns metadata only. Do not obtain the token from repository files.
+		let configured = false;
+		try {
+			await api(`repos/${repository}/actions/secrets/CLOUDFLARE_API_TOKEN`);
+			configured = true;
+		} catch (error) {
+			if (!error.notFound) throw error;
+		}
+		return {
+			repository,
+			provider: hosting.provider,
+			configurationReady: configured,
+			expectedUrl: hosting.siteUrl,
+			project: hosting.projectName,
+			deployment: 'not_verified',
+			ingestion: 'not_verified',
+			dns: 'not_verified',
+			next: configured
+				? 'npm run author:deploy'
+				: 'Connect your Cloudflare account in GitBlog deployment settings; see docs/gitblog/deployment.md'
+		};
+	}
 	let pages = await getPages(repository, api);
 	if (write) {
 		if (!pages) {

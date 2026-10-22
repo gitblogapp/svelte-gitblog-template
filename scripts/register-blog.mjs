@@ -1,4 +1,5 @@
 // Executed only by the pinned official reusable workflow. Never execute blog code here.
+import { parseEnv } from 'node:util';
 export const templateRepository = 'gitblogapp/svelte-gitblog-template';
 export async function registerBlog(
 	env = process.env,
@@ -17,7 +18,7 @@ export async function registerBlog(
 		throw new Error('A public HTTPS GitBlog origin is required');
 	const repository = env.GITHUB_REPOSITORY || '';
 	if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository)) throw new Error('Invalid repository');
-	const api = async (path) => {
+	const api = async (path, optional = false) => {
 		const response = await request(`https://api.github.com${path}`, {
 			redirect: 'manual',
 			signal: AbortSignal.timeout(10000),
@@ -27,6 +28,7 @@ export async function registerBlog(
 				'User-Agent': 'gitblog-registration'
 			}
 		});
+		if (optional && response.status === 404) return null;
 		if (!response.ok) throw new Error(`GitHub verification failed (${response.status})`);
 		return response.json();
 	};
@@ -43,12 +45,43 @@ export async function registerBlog(
 		)
 	)
 		throw new Error('A public blog from the official template on its default branch is required');
-	const pages = await api(`/repos/${repository}/pages`);
-	const site = new URL(pages.html_url);
-	if (site.protocol !== 'https:' || site.username || site.password)
-		throw new Error('Invalid Pages address');
 	const commit = env.GITBLOG_DEPLOYED_COMMIT || '';
 	if (commit && !/^[a-f0-9]{40}$/.test(commit)) throw new Error('Invalid deployed commit');
+	// Read configuration as data at the deployed commit. Never checkout or execute it.
+	const file = await api(
+		`/repos/${repository}/contents/.env.production?ref=${commit || encodeURIComponent(repo.default_branch)}`,
+		true
+	);
+	let settings = {};
+	if (file) {
+		if (
+			file.type !== 'file' ||
+			file.encoding !== 'base64' ||
+			file.size > 64000 ||
+			typeof file.content !== 'string' ||
+			file.content.length > 90000
+		)
+			throw new Error('Invalid deployment settings');
+		settings = parseEnv(Buffer.from(file.content, 'base64').toString('utf8'));
+	}
+	const provider = settings.GITBLOG_DEPLOY_PROVIDER || 'github';
+	if (!['github', 'cloudflare'].includes(provider)) throw new Error('Invalid deployment provider');
+	const site = new URL(
+		provider === 'cloudflare'
+			? settings.PUBLIC_SITE_URL
+			: (await api(`/repos/${repository}/pages`)).html_url
+	);
+	if (
+		site.protocol !== 'https:' ||
+		site.username ||
+		site.password ||
+		site.port ||
+		site.search ||
+		site.hash
+	)
+		throw new Error('Invalid Pages address');
+	if (provider === 'cloudflare' && site.pathname !== '/')
+		throw new Error('Cloudflare Pages requires an origin URL');
 	const oidcUrl = new URL(env.ACTIONS_ID_TOKEN_REQUEST_URL);
 	oidcUrl.searchParams.set('audience', `${hub.origin}/ingestion`);
 	for (let attempt = 0; attempt < 4; attempt++) {
