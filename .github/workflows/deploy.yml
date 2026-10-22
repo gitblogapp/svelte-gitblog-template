@@ -292,6 +292,11 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+      - uses: actions/checkout@v4
+        if: needs.configuration.outputs.provider == 'cloudflare'
+        with:
+          ref: ${{ needs.build.outputs.commit_sha }}
+
       - name: Download static site for Cloudflare
         if: needs.configuration.outputs.provider == 'cloudflare'
         uses: actions/download-artifact@v4
@@ -314,6 +319,7 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "Add CLOUDFLARE_API_TOKEN in repository Actions Secrets."; exit 1; }
           mkdir -p "$RUNNER_TEMP/blog-site"
           tar -xf "$RUNNER_TEMP/blog-artifact/artifact.tar" -C "$RUNNER_TEMP/blog-site"
+          node scripts/prepare-pages-deploy.mjs "$RUNNER_TEMP/blog-site"
           npx --yes wrangler@4.147.0 pages deploy "$RUNNER_TEMP/blog-site" --project-name "$CF_PROJECT" --branch "$CF_BRANCH"
 
   discovery:

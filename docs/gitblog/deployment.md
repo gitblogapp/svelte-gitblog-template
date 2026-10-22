@@ -59,8 +59,8 @@ site or its domain settings. Retire an old site in its provider dashboard after
 verifying the replacement. Stored Cloudflare Secrets remain available for a later
 switch; delete/revoke them if you no longer need that account connection.
 
-GitBlog's automated `gitblog.page` address/proxy management currently supports
-GitHub Pages. Disconnect that assignment and wait for cleanup before switching.
+GitBlog's automated `gitblog.page` address/proxy management supports both providers.
+Disconnect that assignment and wait for cleanup before switching.
 For a personal domain on Cloudflare, add it to the project's **Custom domains**
 first, complete DNS/certificate checks, then save it as `PUBLIC_SITE_URL`. A CNAME
 DNS record alone does not attach the domain to a Pages project. Cloudflare output
@@ -76,3 +76,45 @@ implement paid-article access control.
 References: [Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/),
 [CI credentials](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/),
 [custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/).
+
+## One primary address and search indexing
+
+With no custom domain, the API-returned `project.pages.dev` is the primary,
+indexable address. It remains a static deployment, with no redirect Function.
+The Cloudflare upload job runs `scripts/prepare-pages-deploy.mjs` after building:
+
+- A personal domain must already be active in the project's Custom domains API.
+  The generated Pages Function serves that domain and redirects the default
+  origin and other active attached domains to the same path/query with HTTP 301.
+  Pending certificates fail preparation and leave the last deployment intact.
+- For GitBlog-managed addresses, the controller publishes a public Ed25519 key
+  in the assignment proof and a managed `static/_worker.js`. The proxy signs
+  the method, origin, path/query, timestamp and assignment. Only signed requests
+  get origin content. Direct requests redirect once the assignment is active.
+  A bounded readiness check retains default-address access before activation and
+  after disconnection. Readiness errors return 503, never a cached duplicate.
+- Preview/branch URLs remain accessible with `X-Robots-Tag: noindex`. Do not
+  block these URLs in robots.txt: crawlers need to read the response directive.
+- On removal, restore `PUBLIC_SITE_URL` to the actual project URL and redeploy.
+  GitBlog removes only its own matching proof/Worker. Preparation removes managed
+  routing when using the default URL; unrelated user files are preserved.
+- Existing custom `_worker.js`, `_routes.json` or `_redirects` need an explicit
+  integration; preparation fails rather than overwriting user routing.
+
+`PUBLIC_SITE_URL` is also the source for canonical, hreflang, sitemap, feed and
+structured data. Update it together with the address; never use a global noindex
+on production assets. Redirects are cached for 60 seconds. GitBlog readiness may
+lag a disconnect by at most 45 seconds (registry + Function cache).
+
+Functions require no Zero Trust setup, but requests use the owner's shared Workers
+allowance (Free: 100,000/day). Primary-domain deployments set production and preview
+`fail_open=false` through the existing **Pages Edit** token. At quota exhaustion,
+they fail closed rather than serving duplicate static content. Default-only blogs
+have no Function and keep static hosting. Do not rotate the proxy's signing key
+without redeploying the public verification key to attached blogs.
+
+After changing addresses, check default → 301 → primary → 200 for article paths
+and queries, primary self-canonical, sitemap URLs, preview noindex and the absence
+of noindex on production. Use Search Console to monitor canonical/index changes;
+existing results change after recrawling, not immediately. Prior immutable
+production deployments need separate inspection; new builds do not rewrite them.
