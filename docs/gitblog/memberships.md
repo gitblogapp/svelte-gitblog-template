@@ -8,6 +8,10 @@ Studio's “Allow public preview and GitBlog collection” switch controls wheth
 
 `src/lib/template/ArticleBody.svelte` mounts the official `MembershipEmbed` component. The embed validates the registered blog origin and obtains a short-lived reader credential inside its own origin. No membership session or GitHub credential is shared with the parent blog. Safari users can authenticate in the dedicated login popup if third-party cookies are unavailable.
 
+The reader is deployed independently as `gitblog-membership`. Its stable public URL remains `https://gitblog.app/membership/embed/{id}`; GitBlog forwards validated public metadata through a Cloudflare Service Binding. Login, membership authorization, private content and future billing remain in GitBlog. No additional secret or deployment setting is required in a blog repository.
+
+The adapter passes the article language and current blog theme. Theme changes update the existing iframe through a checked message without interrupting the reader session. A new article or language remounts the iframe to prevent stale article content. Existing v1 adapters without language/theme parameters remain compatible. Other frameworks can implement the same `gitblog-membership-v1` iframe/message contract; the service does not depend on Svelte.
+
 Do not remove the embed when customizing the article theme. The iframe sends a checked resize message; it contains no private body or credential. Membership posts do not generate repository-hosted full TTS. The platform may narrate an approved preview. Translation workflows only see public stubs; the private full body is served in its authored language.
 
 Current enrollment is free and does not charge or auto-convert to paid subscriptions. Payment-provider integration will be added separately.

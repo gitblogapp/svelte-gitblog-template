@@ -24,7 +24,10 @@
 				: 'This article is for members. Sign in or join below to read the full article here.'}
 		</p>{/if}
 </div>
-{#if memberId}<MembershipEmbed id={memberId} />{/if}
+{#if memberId}{#key `${memberId}:${page.data.locale}`}<MembershipEmbed
+			id={memberId}
+			locale={page.data.locale}
+		/>{/key}{/if}
 {#if !memberId && publicFlag(env.PUBLIC_AI_MARKDOWN_ENABLED)}
 	<p data-pagefind-ignore>
 		<!-- page.url.pathname already includes the deployment base; this is a static export. -->
