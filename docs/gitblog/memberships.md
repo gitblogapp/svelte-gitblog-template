@@ -12,6 +12,8 @@ The reader is deployed independently as `gitblog-membership`. Its stable public 
 
 The adapter passes the article language and current blog theme. Theme changes update the existing iframe through a checked message without interrupting the reader session. A new article or language remounts the iframe to prevent stale article content. Existing v1 adapters without language/theme parameters remain compatible. Other frameworks can implement the same `gitblog-membership-v1` iframe/message contract; the service does not depend on Svelte.
 
+The reader uses a transparent canvas and follows the article's reading width, text colors, font families, font size and line height. Theme/viewport changes synchronize without reloading the iframe. The template sends only allowlisted presentation values, never CSS or font URLs; webfonts unavailable inside the iframe use the family's system fallback. Existing adapters keep a neutral light/dark design without these optional values.
+
 Do not remove the embed when customizing the article theme. The iframe sends a checked resize message; it contains no private body or credential. Membership posts do not generate repository-hosted full TTS. The platform may narrate an approved preview. Translation workflows only see public stubs; the private full body is served in its authored language.
 
 Current enrollment is free and does not charge or auto-convert to paid subscriptions. Payment-provider integration will be added separately.
