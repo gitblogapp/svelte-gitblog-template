@@ -38,6 +38,7 @@
 		"update:check": "node ./scripts/validate-update.mjs",
 		"test:seo": "node ./tests/test-translated-seo.mjs",
 		"test:template": "node ./tests/test-template-integration.mjs",
+		"test:memberships": "node ./tests/test-memberships.mjs",
 		"test:tts": "node ./tests/test-tts-translations.mjs && python3 -m unittest discover -s tests/tts -v",
 		"test:history": "PYTHONPATH=scripts/history python3 -m unittest discover -s tests/history -p 'test_*.py' -v",
 		"test:analytics": "node ./tests/test-analytics.ts",

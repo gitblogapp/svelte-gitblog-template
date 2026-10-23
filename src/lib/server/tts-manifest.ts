@@ -15,6 +15,7 @@ export async function speechManifest(includeInput = false) {
 		const xml = await createRssResponse(locale).text();
 		const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((x) => x[1]);
 		for (const post of getFeedPosts(locale)) {
+			if (post.access === 'membership') continue; // Preview speech is generated from the approved public text by GitBlog.
 			const item =
 				items.find(
 					(x) => decode(x.match(/<hub:postId>([\s\S]*?)<\/hub:postId>/)?.[1] || '') === post.id

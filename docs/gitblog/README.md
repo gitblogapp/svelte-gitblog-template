@@ -1,5 +1,7 @@
 # Official GitBlog guides
 
+Membership articles: [Private content and embeds](memberships.md).
+
 Hosting: [GitHub Pages / Cloudflare Pages](deployment.md).
 
 These documents are maintained with the template. The repository's root `README.md` belongs to

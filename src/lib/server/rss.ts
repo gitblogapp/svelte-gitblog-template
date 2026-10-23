@@ -42,6 +42,8 @@ export const createRssResponse = (locale: Locale) => {
 		<description>${escapeXml(post.excerpt)}</description>${bodyExcerptXml(post.bodyExcerpt, bodyBudget)}
 		<pubDate>${new Date(post.date).toUTCString()}</pubDate>
 		<hub:postId>${escapeXml(post.id)}</hub:postId>
+        <hub:access>${post.access}</hub:access>
+        <hub:previewAllowed>${post.previewAllowed}</hub:previewAllowed>
 		<hub:locale>${escapeXml(post.locale)}</hub:locale>
 		<hub:sourceLocale>${escapeXml(post.sourceLocale)}</hub:sourceLocale>
 		<hub:giscusTerm>${escapeXml(post.giscusTerm)}</hub:giscusTerm>${cover}${updated}

@@ -146,7 +146,18 @@ function protectedMarkdown(content) {
 export function translationErrors(source, translated, locale, sourceLocale, stamped = true) {
 	const errors = [];
 	// TTS settings are inherited from the source at build time, not translated metadata.
-	for (const key of ['id', 'date', 'updated', 'published', 'category', 'tags', 'cover']) {
+	for (const key of [
+		'id',
+		'date',
+		'updated',
+		'published',
+		'category',
+		'tags',
+		'cover',
+		'access',
+		'membershipId',
+		'previewAllowed'
+	]) {
 		if (JSON.stringify(source.data[key] ?? null) !== JSON.stringify(translated.data[key] ?? null))
 			errors.push(`must preserve source ${key}`);
 	}
@@ -192,7 +203,15 @@ export async function postErrors(root, post) {
 		)
 	)
 		errors.push('tags must be text or a string array');
-	if (!content.trim()) errors.push('body is empty');
+	if (data.access === 'membership') {
+		if (data.membershipId !== data.id || typeof data.previewAllowed !== 'boolean')
+			errors.push('invalid membership stub');
+		if (!data.sourcePath && !data.previewAllowed && content.trim())
+			errors.push('membership stub must not contain a private body');
+		if (!data.sourcePath && data.previewAllowed && content.trim() !== data.description?.trim())
+			errors.push('membership stub body must equal its approved public preview');
+		if (data.tts !== false) errors.push('membership full TTS must be disabled');
+	} else if (!content.trim()) errors.push('body is empty');
 	const assets = [];
 	if (data.cover != null && data.cover !== '') {
 		if (

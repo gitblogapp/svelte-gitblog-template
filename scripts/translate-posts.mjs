@@ -848,6 +848,13 @@ const translatePost = async (sourceFile, sourceRaw, sourceHash, targetLocale, la
 		.join('\n\n');
 
 	const nextData = {
+		...(data.access === 'membership'
+			? {
+					access: 'membership',
+					membershipId: data.membershipId,
+					previewAllowed: data.previewAllowed
+				}
+			: {}),
 		id,
 		title: translatedMeta[0],
 		description: translatedMeta[1],

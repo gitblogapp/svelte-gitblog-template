@@ -79,6 +79,9 @@ const taxonomy = Object.values(taxonomyFiles)[0] as Taxonomy | undefined;
 if (taxonomy) validateTaxonomy(taxonomy);
 
 type Frontmatter = {
+	access?: string;
+	membershipId?: string;
+	previewAllowed?: boolean;
 	tts?: boolean;
 	ttsVoice?: string;
 	id?: string;
@@ -94,6 +97,9 @@ type Frontmatter = {
 };
 
 type ParsedPost = {
+	access: 'public' | 'membership';
+	membershipId: string | null;
+	previewAllowed: boolean;
 	ttsEnabled: boolean;
 	ttsVoice: string;
 	audioUrl: string | null;
@@ -227,11 +233,26 @@ const parsePost = (
 	source: string,
 	locale: Locale,
 	expectedPostId?: string,
-	sourceSpeech?: Pick<ParsedPost, 'ttsEnabled' | 'ttsVoice'>
+	sourceSpeech?: Pick<
+		ParsedPost,
+		'ttsEnabled' | 'ttsVoice' | 'access' | 'membershipId' | 'previewAllowed'
+	>
 ): ParsedPost => {
 	const slug = toSlug(path);
-	const { content, data } = matter(source);
+	const { content: rawContent, data } = matter(source);
 	const frontmatter = data as Frontmatter;
+	const member = (sourceSpeech?.access ?? frontmatter.access) === 'membership';
+	const previewAllowed = member
+		? (sourceSpeech?.previewAllowed ?? frontmatter.previewAllowed === true)
+		: true;
+	const membershipId = member
+		? (sourceSpeech?.membershipId ?? frontmatter.membershipId ?? null)
+		: null;
+	if (member && (!membershipId || !isPostId(membershipId) || membershipId !== frontmatter.id))
+		throw new Error(`Invalid membership stub in ${path}`);
+	if (member && !sourceSpeech && !previewAllowed && rawContent.trim())
+		throw new Error(`Membership stub must not contain a private body: ${path}`);
+	const content = member && !previewAllowed ? '' : rawContent;
 
 	if (!frontmatter.title || !frontmatter.description || !frontmatter.date) {
 		throw new Error(`Missing required frontmatter in ${path}`);
@@ -284,15 +305,18 @@ const parsePost = (
 		: undefined;
 	// Translations may predate TTS or contain stale copies of these settings.
 	// Inherit policy only; model support is checked for each locale independently.
-	const speechEnabled = sourceSpeech?.ttsEnabled ?? ttsEnabled(frontmatter.tts);
+	const speechEnabled = !member && (sourceSpeech?.ttsEnabled ?? ttsEnabled(frontmatter.tts));
 	const speechVoice = sourceSpeech?.ttsVoice ?? ttsVoice(frontmatter.ttsVoice);
 	return {
 		id,
+		access: member ? 'membership' : 'public',
+		membershipId,
+		previewAllowed,
 		locale,
 		sourceLocale,
 		slug,
 		title: frontmatter.title,
-		description: frontmatter.description,
+		description: member && !previewAllowed ? 'Members-only article' : frontmatter.description,
 		date,
 		updated,
 		published: frontmatter.published !== false,
@@ -302,7 +326,7 @@ const parsePost = (
 		tags: classification?.tags.map((tag) => tag.label) ?? normalizeTags(frontmatter.tags),
 		taxonomy: classification,
 		cover: normalizeCover(frontmatter.cover),
-		excerpt: createExcerpt(frontmatter.description, content),
+		excerpt: member && !previewAllowed ? '' : createExcerpt(frontmatter.description, content),
 		bodyExcerpt: createBodyExcerpt(content),
 		markdown: content,
 		ttsEnabled: speechEnabled,
@@ -371,6 +395,9 @@ for (const [locale, posts] of postsByLocale) {
 }
 
 const toSummary = (post: ParsedPost): PostSummary => ({
+	access: post.access,
+	membershipId: post.membershipId,
+	previewAllowed: post.previewAllowed,
 	ttsEnabled: post.ttsEnabled,
 	ttsVoice: post.ttsVoice,
 	audioUrl: post.audioUrl,

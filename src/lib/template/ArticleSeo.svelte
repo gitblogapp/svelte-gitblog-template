@@ -13,6 +13,16 @@
 		toJsonLdScript({
 			'@context': 'https://schema.org',
 			'@type': 'BlogPosting',
+			isAccessibleForFree: post.access !== 'membership',
+			...(post.access === 'membership'
+				? {
+						hasPart: {
+							'@type': 'WebPageElement',
+							isAccessibleForFree: false,
+							cssSelector: '.membership-embed'
+						}
+					}
+				: {}),
 			headline: post.title,
 			description: post.description,
 			image: coverUrl ? [coverUrl] : undefined,
