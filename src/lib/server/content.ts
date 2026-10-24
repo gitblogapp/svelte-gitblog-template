@@ -1,3 +1,4 @@
+import {membershipStub} from '@gitblogapp/core/membership';
 import { ttsEnabled, ttsVoice, audioEntry, rawAudio } from './tts';
 import { createSpokenText } from './body-excerpt';
 import {
@@ -241,18 +242,9 @@ const parsePost = (
 	const slug = toSlug(path);
 	const { content: rawContent, data } = matter(source);
 	const frontmatter = data as Frontmatter;
-	const member = (sourceSpeech?.access ?? frontmatter.access) === 'membership';
-	const previewAllowed = member
-		? (sourceSpeech?.previewAllowed ?? frontmatter.previewAllowed === true)
-		: true;
-	const membershipId = member
-		? (sourceSpeech?.membershipId ?? frontmatter.membershipId ?? null)
-		: null;
-	if (member && (!membershipId || !isPostId(membershipId) || membershipId !== frontmatter.id))
-		throw new Error(`Invalid membership stub in ${path}`);
-	if (member && !sourceSpeech && !previewAllowed && rawContent.trim())
-		throw new Error(`Membership stub must not contain a private body: ${path}`);
-	const content = member && !previewAllowed ? '' : rawContent;
+	const stub=membershipStub(data,rawContent,sourceSpeech);
+	const member=stub.access==='membership';
+	const {previewAllowed,membershipId,body:content}=stub;
 
 	if (!frontmatter.title || !frontmatter.description || !frontmatter.date) {
 		throw new Error(`Missing required frontmatter in ${path}`);

@@ -39,6 +39,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm ci
       - id: settings
         run: node scripts/deployment-settings.mjs
 
@@ -308,6 +309,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm ci
+        if: needs.configuration.outputs.provider == 'cloudflare'
       - name: Deploy to own Cloudflare Pages account
         if: needs.configuration.outputs.provider == 'cloudflare'
         env:
