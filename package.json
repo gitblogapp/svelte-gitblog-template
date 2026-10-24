@@ -87,9 +87,9 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
-		"@gitblogapp/browser": "https://github.com/gitblogapp/gitblog-template-packages/releases/download/v0.1.0/gitblogapp-browser-0.1.0.tgz",
-		"@gitblogapp/cli": "https://github.com/gitblogapp/gitblog-template-packages/releases/download/v0.1.0/gitblogapp-cli-0.1.0.tgz",
-		"@gitblogapp/core": "https://github.com/gitblogapp/gitblog-template-packages/releases/download/v0.1.0/gitblogapp-core-0.1.0.tgz",
+		"@gitblogapp/browser": "0.1.1",
+		"@gitblogapp/cli": "0.1.1",
+		"@gitblogapp/core": "0.1.1",
 		"gray-matter": "^4.0.3",
 		"highlight.js": "^11.11.1",
 		"marked": "^18.0.0"
