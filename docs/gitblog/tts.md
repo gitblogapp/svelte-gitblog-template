@@ -1,13 +1,17 @@
 # Article and Shorts speech
 
 Supertonic 3 runs on the standard CPU GitHub Actions runner when the blog deploys.
-No speech API key or paid inference subscription is required. Enable it in GitBlog's
-blog settings → TTS, or in `.env.production`:
+No speech API key or paid inference subscription is required. Speech is enabled by
+default in new templates. Change it in GitBlog's blog settings → TTS, or in
+`.env.production`:
 
 ```dotenv
 PUBLIC_TTS_ENABLED=true
 PUBLIC_TTS_VOICE=F1
 ```
+
+Set `PUBLIC_TTS_ENABLED=false` to disable the blog default. Existing blogs retain
+their saved setting when updating the template.
 
 Choose F1–F5 or M1–M5. GitBlog provides generated voice samples. The post editor's
 TTS checkbox overrides the blog default for that post; a blank post voice inherits
