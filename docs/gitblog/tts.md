@@ -67,10 +67,13 @@ indexed repository into R2. Full audio remains in your repository.
 `.well-known/tts-input.json` is a build input containing speech text; the deployment
 removes it before uploading Pages. Do not add `content/audio` to static build assets.
 
-The separate `platform-speech.yml` workflow consumes GitBlog's central excerpt queue
-only in the official `gitblogapp/svelte-gitblog-template` repository. It skips all user
-copies. GitBlog authenticates this workflow with short-lived GitHub OIDC, so no R2
-credentials or GitBlog service secrets are distributed to blog owners.
+Platform excerpt synthesis lives in the separate
+[gitblogapp/gitblog-tts](https://github.com/gitblogapp/gitblog-tts) service. GitBlog
+dispatches its Actions workflow when public excerpt jobs are queued. This template
+contains only the owner's blog narration pipeline (full articles and matching
+excerpts); it never consumes the central queue. The platform worker authenticates
+with short-lived GitHub OIDC, so no R2 credentials or service secrets are distributed
+to blog owners.
 
 ## Model and licensing
 
