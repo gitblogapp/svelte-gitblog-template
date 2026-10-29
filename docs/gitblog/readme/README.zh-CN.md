@@ -45,7 +45,6 @@ DEEPL_API_KEY=your-key npm run translate:content
 - `static/assets/icons/`: 默认网站图标和应用图标
 - `static/uploads`：通过 Pages CMS 上传的文件
 - `scripts/`: 构建、部署和验证工具
-- `tests/`: 回归测试和模板集成测试
 
 `content`、`.env.production` 和 `static/uploads` 属于各博客自己的数据。应用代码保留在 `src` 中，以减少合并上游模板更新时的冲突。
 

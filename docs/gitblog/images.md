@@ -50,7 +50,6 @@ they make the Pages artifact too large. Disk/cache write failures fail the build
 ```sh
 npm run build             # Includes optimization and the normal publishing checks
 npm run images:optimize   # Recheck an existing build/uploads directory
-npm run test:images       # Image preservation, caching and format regression checks
 ```
 
 Existing blogs receive this feature after applying the template update and redeploying.

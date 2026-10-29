@@ -27,11 +27,10 @@ The machine-readable policy lives in `.gitblog/update-policy.json`. `preserve` l
 | `.gitblog/user-instructions.md`                   | Blog owner: audience, voice, editorial and working preferences | Preserve exactly; optional on upgraded blogs                                                 |
 | `AGENTS.md`                                       | Stable agent entry point with possible local additions         | Merge-only; review conflicts instead of replacing local instructions                         |
 | `docs/gitblog/`                                   | Official operating guides and template reference               | Update with the template; review local modifications using the existing three-way comparison |
-| Older `docs/*.md` and `docs/readme/*` guide paths | Compatibility links                                            | Keep links to maintained guides so preserved READMEs remain useful                           |
 
 Do not preserve all of `docs/` or `.gitblog/`: that would prevent official guides and update metadata from receiving fixes. Put personal rules in the user instructions file. These rules customize prose and recurring preferences; they do not bypass validation or credential handling and do not grant unrelated publication permission. The current user request takes precedence. Real configuration remains in `.env.production` and `.gitblog/authoring.json`.
 
-When upgrading from the previous layout, Studio preserves the existing README and moves the maintained manual into `docs/gitblog/reference.md`. Former guide paths become compatibility links. If an old guide or `AGENTS.md` was edited locally, review the conflict and move personal rules into `.gitblog/user-instructions.md` before adopting the maintained guide or entry point. Do not discard those edits. The new optional user instructions file may remain absent because protected paths are not populated by an update; the harness handles this and never generates personal preferences automatically. Create it only when the owner wants to save their instructions. Newly generated repositories include a blank starter.
+When upgrading from the previous layout, Studio preserves the existing README and moves the maintained manual into `docs/gitblog/reference.md`. The former forwarding files under `docs/` and `docs/readme/` have been removed. Update links in an older owner-managed README or saved prompt to `docs/gitblog/` (including `docs/gitblog/readme/` for translated references); Studio does not rewrite the preserved README automatically. If an old guide or `AGENTS.md` was edited locally, review the conflict and move personal rules into `.gitblog/user-instructions.md` before adopting the maintained guide or entry point. Do not discard those edits. The new optional user instructions file may remain absent because protected paths are not populated by an update; the harness handles this and never generates personal preferences automatically. Create it only when the owner wants to save their instructions. Newly generated repositories include a blank starter.
 
 The preservation policy applies to GitBlog Studio updates. Ordinary Git merges, file copying, and other agents must explicitly honor the same ownership rules; Git itself does not enforce this policy.
 
@@ -112,19 +111,18 @@ Duplicate IDs and unsupported API versions fail the build. Failed extensions are
 
 ```sh
 npm run update:check
-npm run test:template
 ```
 
 `update:check` performs these steps:
 
 1. Records paths and byte hashes for files covered by preservation and merge policies.
-2. Runs existing tests, read-only post ID validation, and Svelte type checks.
+2. Runs authoring, post ID, taxonomy and Svelte type checks.
 3. Runs the static build, GitBlog contract validation, and Pagefind indexing.
 4. Checks protected files for additions, modifications, and deletions, whether validation succeeds or fails.
 
 Build artifacts such as `build/` and `.svelte-kit/` are generated. The command does not invoke translation, ID generation, file cleanup, GitHub writes, or deployment. It is not a sandbox that blocks writes. If a user build plugin changes protected files, validation detects the change and fails without automatically restoring files, which could discard user work. Editing files during validation is also detected as a change.
 
-`test:template` registers user CSS, extension components, and posts in a temporary copy and tests an actual build. It checks project Pages base paths, positions before and after the body and after the footer, post ID propagation, Google verification metadata, and source preservation. It does not modify the original blog.
+Developer regression tests run in [svelte-gitblog-template-dev](https://github.com/gitblogapp/svelte-gitblog-template-dev) before publication. User repositories contain operating checks and build validation, not the developer test suite.
 
 `.github/workflows/validate-update.yml` validates PRs with read-only permissions. The separate `deploy.yml` publishing workflow performs content preparation according to the authoring policy, followed by Discussion and Release synchronization. In DeepL mode, ID backfill and translation commands retain their existing behavior of deleting translations with no source post. **Do not use the publishing workflow to preview a migration.** Review content-changing publishing operations separately. See the [authoring guide](authoring.md) for manual mode, which validates content without generating or deleting translations.
 

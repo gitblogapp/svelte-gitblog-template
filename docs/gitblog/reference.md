@@ -73,7 +73,6 @@ Keep `PUBLIC_TRANSLATION_LOCALES` configured for localized pages and GitBlog fee
 - `static/assets/icons/`: bundled favicon and app icons
 - `static/uploads`: files uploaded through Pages CMS; production builds optimize copies without changing originals or URLs. See [image optimization](images.md).
 - `scripts/`: build, deployment, and validation tools
-- `tests/`: regression and template integration tests
 
 `content`, `.env.production`, and `static/uploads` are owned by each blog. Application code remains in `src`, reducing conflicts when upstream template updates are merged.
 
@@ -197,7 +196,7 @@ Every published language version has its own self-referencing canonical URL. The
 
 Language codes follow the configured audience: `en` remains generic English, `en-gb` becomes `en-GB`, and `zh-hans` / `zh-hant` retain their script distinctions. Article URLs encode the filename slug and retain the deployment's project path. Sitemap `lastmod`, structured data `dateModified`, and Open Graph modification time use `updated` when present; a newer translation `translatedAt` takes precedence for that translation. Builds do not invent modification times.
 
-Run `npm run test:seo` to verify the generated HTML and XML for project Pages and root/custom-domain deployments. This regression check also runs inside `npm run update:check`. Existing blogs receive these changes after applying the template update in Studio and successfully redeploying.
+Run `npm run update:check` to validate the site build, discovery contracts and preservation of user files. Project Pages, translations and custom-domain SEO regression tests run in the development repository before the user template is published.
 
 ### Google Search registration
 
@@ -447,7 +446,7 @@ The deployment workflow uses `giscus-post-<first 16 hex characters of SHA-256(po
 
 ## Customization and update preservation
 
-Theme files live in `src/lib/theme`, user extensions in `src/lib/extensions`, and shared behavior in `src/lib/template`. Run `npm run update:check` for a build that verifies protected source files remain unchanged. Run `npm run test:template` to exercise custom CSS and extension points in a temporary copy. See [the customization guide](customization.md) for contracts, ownership, and migration limits.
+Theme files live in `src/lib/theme`, user extensions in `src/lib/extensions`, and shared behavior in `src/lib/template`. Run `npm run update:check` for a build that verifies protected source files remain unchanged. See [the customization guide](customization.md) for contracts, ownership, and migration limits.
 
 ### GitBlog integrated comment host
 
@@ -487,7 +486,7 @@ Set `PUBLIC_SITE_TITLE` to the display name of your blog, independently of the G
 
 RSS includes an optional `hub:bodyExcerpt` field containing real article prose, separately from the existing description. The build gathers opening paragraphs until approximately 800 Unicode characters are available, with a maximum of 1,200 including spaces and paragraph breaks. Short articles stay intact. Section headings are retained with their following prose; article titles (H1), fenced code, images, tables, and raw HTML are skipped. Long paragraphs are cut at a sentence boundary when possible. Content files are not rewritten. The field is XML-escaped plain text; consumers must never execute it as HTML.
 
-The full feed stays within the hub's 2 MiB limit by budgeting excerpt bytes per article. An excerpt may be shortened or omitted when space is limited; published articles are never removed from the feed to make room. Existing blogs receive this feature after updating and deploying the template; the hub must also support the new field. Run `npm run test:body-excerpt` for extraction checks and `npm run test:template` for the built RSS integration check.
+The full feed stays within the hub's 2 MiB limit by budgeting excerpt bytes per article. An excerpt may be shortened or omitted when space is limited; published articles are never removed from the feed to make room. Existing blogs receive this feature after updating and deploying the template; the hub must also support the new field. Excerpt extraction and RSS integration are tested in the development repository before publication.
 
 ### GitBlog related article panel
 

@@ -33,3 +33,7 @@ __pycache__/
 **/__pycache__/
 
 .cache/gitblog-images/
+
+# Developer distribution artifacts
+/template-distribution.tar
+/distribution-output/

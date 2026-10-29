@@ -31,6 +31,8 @@ may not have that optional file because updates preserve user-owned paths, inclu
 If the owner wants persistent preferences, create it with their chosen instructions; do not copy
 new defaults over an existing file. An empty file adds no preferences.
 
-Older `docs/*.md` and `docs/readme/*` paths only redirect to these guides so preserved READMEs
-and existing prompts can still find current instructions. They are compatibility entry points,
-not separate copies of the official guidance.
+Official documentation lives only in `docs/gitblog/`. The former `docs/*.md` and
+`docs/readme/*` forwarding files have been removed. When using an older README or saved
+prompt, update its guide links to `docs/gitblog/<filename>` or
+`docs/gitblog/readme/<filename>`. The root README remains owner-managed; template updates
+do not rewrite it automatically.

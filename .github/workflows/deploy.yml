@@ -24,7 +24,7 @@ concurrency:
 jobs:
   # GITBLOG_DEPLOY_PROVIDER is read as data; never source .env files in a shell.
   configuration:
-    if: github.event.repository.is_template != true
+    if: github.event.repository.is_template != true && github.repository != 'gitblogapp/svelte-gitblog-template-dev'
     runs-on: ubuntu-latest
     permissions:
       contents: read

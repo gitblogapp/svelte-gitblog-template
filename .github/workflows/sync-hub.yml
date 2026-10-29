@@ -7,7 +7,7 @@ permissions:
   id-token: write
 jobs:
   settings:
-    if: github.event.repository.is_template != true
+    if: github.event.repository.is_template != true && github.repository != 'gitblogapp/svelte-gitblog-template-dev'
     runs-on: ubuntu-24.04
     outputs:
       enabled: ${{ steps.settings.outputs.enabled }}

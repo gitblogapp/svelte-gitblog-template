@@ -54,7 +54,6 @@ DEEPL_API_KEY=your-key npm run translate:content
 - `static/assets/icons/`: 기본 제공 파비콘·앱 아이콘
 - `static/uploads`: CMS 업로드 이미지
 - `scripts/`: 빌드·배포·검증 도구
-- `tests/`: 회귀 테스트와 템플릿 통합 테스트
 
 `content`, `.env.production`, `static/uploads`는 블로그별 사용자 데이터 영역입니다. 템플릿 애플리케이션 코드는 `src`에 두어 원본 저장소의 코드 변경을 병합할 때 사용자 콘텐츠와 충돌하는 범위를 줄입니다.
 
@@ -380,7 +379,7 @@ npm run build
 
 ## 디자인·콘텐츠·추가 기능 보존
 
-디자인은 `src/lib/theme`, 사용자 기능은 `src/lib/extensions`, 공식 동작은 `src/lib/template`에서 관리합니다. `npm run update:check`는 콘텐츠를 생성·번역하지 않고 검사와 빌드를 실행하며 보호 파일의 변경 여부를 확인합니다. `npm run test:template`은 임시 복사본에서 사용자 스타일과 확장 연결을 검증합니다. 자세한 규약과 기존 사용자 코드 이전 절차는 [커스터마이징 가이드](../customization.md)를 참고하세요.
+디자인은 `src/lib/theme`, 사용자 기능은 `src/lib/extensions`, 공식 동작은 `src/lib/template`에서 관리합니다. `npm run update:check`는 콘텐츠를 생성·번역하지 않고 검사와 빌드를 실행하며 보호 파일의 변경 여부를 확인합니다. 개발용 회귀 테스트는 별도 개발 저장소에서 배포 전에 실행합니다. 자세한 규약과 기존 사용자 코드 이전 절차는 [커스터마이징 가이드](../customization.md)를 참고하세요.
 
 ## GitBlog 피드 자동 등록
 

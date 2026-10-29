@@ -45,7 +45,6 @@ DEEPL_API_KEY=your-key npm run translate:content
 - `static/assets/icons/`: 標準のファビコン・アプリアイコン
 - `static/uploads`：Pages CMS からアップロードしたファイル
 - `scripts/`: ビルド・デプロイ・検証ツール
-- `tests/`: 回帰テストとテンプレート統合テスト
 
 `content`、`.env.production`、`static/uploads` はブログごとのユーザーデータです。アプリケーションコードを `src` に分離することで、上流テンプレートの更新をマージするときの競合を減らします。
 
