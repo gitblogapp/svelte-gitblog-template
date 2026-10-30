@@ -4,6 +4,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import { marked } from 'marked';
 import { readPolicy } from './lib/authoring.mjs';
 import { translateTaxonomy, collectTaxonomy, saveTaxonomy } from './lib/taxonomy.ts';
 
@@ -55,6 +56,8 @@ const deeplLanguageCodes = {
 	ar: 'AR',
 	de: 'DE',
 	en: 'EN-US',
+	'en-us': 'EN-US',
+	'en-gb': 'EN-GB',
 	es: 'ES',
 	fr: 'FR',
 	it: 'IT',
@@ -133,7 +136,7 @@ const defaultApiUrl = (() => {
 
 const translateEndpoint = `${defaultApiUrl}/v2/translate`;
 const translationChunkLimit = 20_000;
-const translationSchemaVersion = 'markdown-xml-v2';
+const translationSchemaVersion = 'markdown-xml-v3';
 const siteTranslationSchemaVersion = 'site-copy-v1';
 const plainTextCustomInstructions = [
 	'Use natural grammar, punctuation, and capitalization for the target language.',
@@ -315,115 +318,6 @@ const inferSiteTranslationState = async (targetFile) => {
 	}
 };
 
-const splitMarkdownForTranslation = (content) => {
-	const lines = content.replace(/\r\n/g, '\n').split('\n');
-	const parts = [];
-	let currentLines = [];
-	let activeFence = null;
-
-	const flushCurrentLines = () => {
-		if (currentLines.length === 0) {
-			return;
-		}
-
-		parts.push(currentLines.join('\n'));
-		currentLines = [];
-	};
-
-	const getFenceToken = (line) => {
-		const trimmed = line.trimStart();
-		if (!trimmed.startsWith('```') && !trimmed.startsWith('~~~')) {
-			return null;
-		}
-
-		const marker = trimmed[0];
-		let length = 0;
-		while (trimmed[length] === marker) {
-			length += 1;
-		}
-
-		return length >= 3 ? marker.repeat(length) : null;
-	};
-
-	const isFenceClosingLine = (line, fenceToken) => {
-		if (!fenceToken) {
-			return false;
-		}
-
-		const trimmed = line.trimStart();
-		if (!trimmed.startsWith(fenceToken[0])) {
-			return false;
-		}
-
-		let length = 0;
-		while (trimmed[length] === fenceToken[0]) {
-			length += 1;
-		}
-
-		return length >= fenceToken.length;
-	};
-
-	for (const line of lines) {
-		const fenceToken = getFenceToken(line);
-
-		if (activeFence) {
-			currentLines.push(line);
-			if (isFenceClosingLine(line, activeFence)) {
-				activeFence = null;
-			}
-			continue;
-		}
-
-		if (fenceToken) {
-			currentLines.push(line);
-			activeFence = fenceToken;
-			continue;
-		}
-
-		if (line.trim() === '') {
-			flushCurrentLines();
-			continue;
-		}
-
-		currentLines.push(line);
-	}
-
-	flushCurrentLines();
-
-	const chunks = [];
-	let current = '';
-
-	for (const part of parts) {
-		if (part.length > translationChunkLimit) {
-			if (current !== '') {
-				chunks.push(current);
-				current = '';
-			}
-
-			for (let index = 0; index < part.length; index += translationChunkLimit) {
-				chunks.push(part.slice(index, index + translationChunkLimit));
-			}
-
-			continue;
-		}
-
-		const nextValue = current === '' ? part : `${current}\n\n${part}`;
-		if (nextValue.length > translationChunkLimit && current !== '') {
-			chunks.push(current);
-			current = part;
-			continue;
-		}
-
-		current = nextValue;
-	}
-
-	if (current !== '') {
-		chunks.push(current);
-	}
-
-	return chunks.length > 0 ? chunks : [''];
-};
-
 const protectMarkdownInline = (content) => {
 	let tokenIndex = 0;
 	const replacements = [];
@@ -449,10 +343,10 @@ const protectMarkdownInline = (content) => {
 	return {
 		text: nextContent,
 		restore: (translated) =>
-			replacements.reduce(
-				(current, [token, original]) => current.replaceAll(token, original),
-				translated
-			)
+			replacements.reduce((current, [token, original]) => {
+				if (!current.includes(token)) throw new Error('DeepL changed a protected Markdown token');
+				return current.replaceAll(token, original);
+			}, translated)
 	};
 };
 
@@ -470,6 +364,22 @@ const isStructuralMarkdownLine = (line) =>
 	isHorizontalRule(line) ||
 	line.trimStart().startsWith('```') ||
 	line.trimStart().startsWith('~~~');
+
+// Unescaped pipes delimit cells; escaped pipes remain part of the cell text.
+const splitTableRow = (line) => {
+	const cells = [];
+	let start = 0;
+	let backslashes = 0;
+	for (let index = 0; index < line.length; index += 1) {
+		if (line[index] === '|' && backslashes % 2 === 0) {
+			cells.push(protectMarkdownInline(line.slice(start, index)));
+			start = index + 1;
+		}
+		backslashes = line[index] === '\\' ? backslashes + 1 : 0;
+	}
+	cells.push(protectMarkdownInline(line.slice(start)));
+	return cells;
+};
 
 const parseMarkdownChunk = (content) => {
 	const lines = content.split('\n');
@@ -493,7 +403,10 @@ const parseMarkdownChunk = (content) => {
 					break;
 				}
 
-				if (isStructuralMarkdownLine(lines[index])) {
+				if (
+					isStructuralMarkdownLine(lines[index]) ||
+					(lines[index].includes('|') && /^\s*\|?[\s:|-]+$/.test(lines[index + 1] ?? ''))
+				) {
 					break;
 				}
 
@@ -522,6 +435,21 @@ const parseMarkdownChunk = (content) => {
 		if (line.trim() === '') {
 			index += 1;
 			continue;
+		}
+
+		// Parse table boundaries with the same GFM parser used by the renderer.
+		if (line.includes('|') && /^\s*\|?[\s:|-]+$/.test(lines[index + 1] ?? '')) {
+			const table = marked.lexer(lines.slice(index).join('\n'))[0];
+			if (table?.type === 'table') {
+				const rows = table.raw.trimEnd().split('\n');
+				blocks.push({
+					type: 'table',
+					separator: rows[1],
+					rows: [rows[0], ...rows.slice(2)].map(splitTableRow)
+				});
+				index += rows.length;
+				continue;
+			}
 		}
 
 		const headingMatch = matchHeadingLine(line);
@@ -615,7 +543,10 @@ const parseMarkdownChunk = (content) => {
 				break;
 			}
 
-			if (isStructuralMarkdownLine(lines[index])) {
+			if (
+				isStructuralMarkdownLine(lines[index]) ||
+				(lines[index].includes('|') && /^\s*\|?[\s:|-]+$/.test(lines[index + 1] ?? ''))
+			) {
 				break;
 			}
 
@@ -633,31 +564,6 @@ const parseMarkdownChunk = (content) => {
 
 	return blocks;
 };
-
-const serializeMarkdownBlocksToXml = (blocks) =>
-	`<doc>${blocks
-		.map((block) => {
-			switch (block.type) {
-				case 'heading':
-					return `<h>${escapeXml(block.text)}</h>`;
-				case 'paragraph':
-					return `<p>${escapeXml(block.text)}</p>`;
-				case 'unordered-list':
-				case 'ordered-list':
-					return `<list>${block.items.map((item) => `<li>${escapeXml(item.text)}</li>`).join('')}</list>`;
-				case 'blockquote':
-					return `<blockquote>${block.lines
-						.map((line) => `<line>${escapeXml(line.text)}</line>`)
-						.join('')}</blockquote>`;
-				case 'code':
-					return `<codeblock>${escapeXml(block.raw)}</codeblock>`;
-				case 'raw':
-					return `<rawblock>${escapeXml(block.raw)}</rawblock>`;
-				default:
-					return '';
-			}
-		})
-		.join('')}</doc>`;
 
 const consumeXmlTag = (source, tagName, startIndex = 0) => {
 	const openPattern = new RegExp(`<${tagName}(?:\\s[^>]*)?>`, 'g');
@@ -682,81 +588,93 @@ const consumeXmlTag = (source, tagName, startIndex = 0) => {
 	};
 };
 
-const restoreMarkdownFromXml = (translatedXml, blocks) => {
-	const documentNode = consumeXmlTag(translatedXml.trim(), 'doc');
-	let cursor = 0;
-	const restoredBlocks = [];
-
-	for (const block of blocks) {
-		if (block.type === 'heading') {
-			const node = consumeXmlTag(documentNode.inner, 'h', cursor);
-			cursor = node.nextIndex;
-			restoredBlocks.push(`${block.prefix}${block.restore(unescapeXml(node.inner))}`);
-			continue;
-		}
-
-		if (block.type === 'paragraph') {
-			const node = consumeXmlTag(documentNode.inner, 'p', cursor);
-			cursor = node.nextIndex;
-			restoredBlocks.push(block.restore(unescapeXml(node.inner)));
-			continue;
-		}
-
-		if (block.type === 'unordered-list' || block.type === 'ordered-list') {
-			const listNode = consumeXmlTag(documentNode.inner, 'list', cursor);
-			cursor = listNode.nextIndex;
-			let itemCursor = 0;
-			const restoredItems = [];
-
-			for (const item of block.items) {
-				const itemNode = consumeXmlTag(listNode.inner, 'li', itemCursor);
-				itemCursor = itemNode.nextIndex;
-				restoredItems.push(`${item.prefix}${item.restore(unescapeXml(itemNode.inner))}`);
-			}
-
-			restoredBlocks.push(restoredItems.join('\n'));
-			continue;
-		}
-
-		if (block.type === 'blockquote') {
-			const blockquoteNode = consumeXmlTag(documentNode.inner, 'blockquote', cursor);
-			cursor = blockquoteNode.nextIndex;
-			let lineCursor = 0;
-			const restoredLines = [];
-
-			for (const line of block.lines) {
-				const lineNode = consumeXmlTag(blockquoteNode.inner, 'line', lineCursor);
-				lineCursor = lineNode.nextIndex;
-				restoredLines.push(`${line.prefix}${line.restore(unescapeXml(lineNode.inner))}`);
-			}
-
-			restoredBlocks.push(restoredLines.join('\n'));
-			continue;
-		}
-
-		if (block.type === 'code') {
-			const node = consumeXmlTag(documentNode.inner, 'codeblock', cursor);
-			cursor = node.nextIndex;
-			restoredBlocks.push(unescapeXml(node.inner));
-			continue;
-		}
-
-		if (block.type === 'raw') {
-			const node = consumeXmlTag(documentNode.inner, 'rawblock', cursor);
-			cursor = node.nextIndex;
-			restoredBlocks.push(unescapeXml(node.inner));
-		}
+// Split only translatable text, never Markdown structures or protected inline tokens.
+const splitTranslationText = (text) => {
+	const parts = [];
+	while (text.length > translationChunkLimit) {
+		let end = translationChunkLimit;
+		const whitespace = text.slice(0, end).search(/\s+\S*$/);
+		if (whitespace > end / 2) end = whitespace;
+		const tokenStart = text.lastIndexOf('ZXQPL_KEEP_', end - 1);
+		const token =
+			tokenStart < 0 ? null : text.slice(tokenStart).match(/^ZXQPL_KEEP_\d{4,10}_ZXQPL/);
+		if (token && tokenStart + token[0].length > end) end = tokenStart;
+		// Never cut a UTF-16 surrogate pair in half.
+		if (/[\uD800-\uDBFF]/.test(text[end - 1])) end -= 1;
+		parts.push(text.slice(0, end));
+		text = text.slice(end);
 	}
-
-	return restoredBlocks.join('\n\n');
+	parts.push(text);
+	return parts;
 };
 
-const createStructuredMarkdownChunk = (content) => {
-	const blocks = parseMarkdownChunk(content);
-
+const createMarkdownTranslation = (content) => {
+	const fragments = [];
+	const renderField = (field) => {
+		const parts = splitTranslationText(field.text).map((text) => {
+			const leading = text.match(/^\s*/)[0];
+			const trailing = text.trim() === '' ? '' : text.match(/\s*$/)[0];
+			const fragment = { text: text.trim(), translated: '' };
+			if (fragment.text !== '') fragments.push(fragment);
+			return () => leading + fragment.translated + trailing;
+		});
+		return () => field.restore(parts.map((render) => render()).join(''));
+	};
+	const blocks = parseMarkdownChunk(content).map((block) => {
+		if (block.type === 'code' || block.type === 'raw') return () => block.raw;
+		if (block.type === 'heading' || block.type === 'paragraph') {
+			const render = renderField(block);
+			return () => (block.prefix ?? '') + render();
+		}
+		if (block.type === 'table') {
+			const rows = block.rows.map((row) => row.map(renderField));
+			return () => {
+				const lines = rows.map((row) =>
+					row.map((render) => render().replace(/\r?\n/g, ' ')).join('|')
+				);
+				lines.splice(1, 0, block.separator);
+				return lines.join('\n');
+			};
+		}
+		const items = (block.items ?? block.lines).map((item) => ({
+			prefix: item.prefix,
+			render: renderField(item)
+		}));
+		return () => items.map((item) => item.prefix + item.render()).join('\n');
+	});
+	// Keep related fragments together for context, with bounded XML document sizes.
+	const chunks = [];
+	let current = [];
+	let bytes = 0;
+	for (const fragment of fragments) {
+		fragment.xml = `<p>${escapeXml(fragment.text)}</p>`;
+		const nextBytes = Buffer.byteLength(fragment.xml, 'utf8');
+		if (current.length > 0 && bytes + nextBytes > 64 * 1024) {
+			chunks.push(current);
+			current = [];
+			bytes = 0;
+		}
+		current.push(fragment);
+		bytes += nextBytes;
+	}
+	if (current.length > 0) chunks.push(current);
 	return {
-		text: serializeMarkdownBlocksToXml(blocks),
-		restore: (translated) => restoreMarkdownFromXml(translated, blocks)
+		texts: chunks.map((chunk) => `<doc>${chunk.map((fragment) => fragment.xml).join('')}</doc>`),
+		restore: (translations) => {
+			for (const [index, chunk] of chunks.entries()) {
+				const doc = consumeXmlTag(translations[index], 'doc');
+				let cursor = 0;
+				for (const fragment of chunk) {
+					const node = consumeXmlTag(doc.inner, 'p', cursor);
+					const translated = unescapeXml(node.inner);
+					if (translated.trim() === '')
+						throw new Error('DeepL returned an empty Markdown fragment');
+					fragment.translated = translated;
+					cursor = node.nextIndex;
+				}
+			}
+			return blocks.map((render) => render()).join('\n\n');
+		}
 	};
 };
 
@@ -790,26 +708,51 @@ const translateTexts = async (texts, options = {}) => {
 		);
 	}
 
-	const response = await fetch(translateEndpoint, {
-		method: 'POST',
-		headers: {
-			Authorization: `DeepL-Auth-Key ${apiKey}`,
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(requestBody)
-	});
-
-	if (!response.ok) {
-		throw new Error(`DeepL request failed (${response.status}): ${await response.text()}`);
+	const maxRequestBytes = 128 * 1024;
+	const batches = [];
+	let batch = [];
+	const bodyFor = (text) => JSON.stringify({ ...requestBody, text });
+	for (const text of texts) {
+		if (
+			batch.length > 0 &&
+			(batch.length === 50 || Buffer.byteLength(bodyFor([...batch, text])) > maxRequestBytes)
+		) {
+			batches.push(batch);
+			batch = [];
+		}
+		if (Buffer.byteLength(bodyFor([text])) > maxRequestBytes) {
+			throw new Error('A DeepL text exceeds the 128 KiB request limit');
+		}
+		batch.push(text);
 	}
+	if (batch.length > 0) batches.push(batch);
 
-	const payload = await response.json();
-
-	if (!Array.isArray(payload.translations)) {
-		throw new Error('DeepL response did not include a translations array');
+	const translated = [];
+	for (const batch of batches) {
+		const response = await fetch(translateEndpoint, {
+			method: 'POST',
+			headers: {
+				Authorization: `DeepL-Auth-Key ${apiKey}`,
+				'Content-Type': 'application/json'
+			},
+			body: bodyFor(batch)
+		});
+		if (!response.ok) {
+			throw new Error(`DeepL request failed (${response.status}): ${await response.text()}`);
+		}
+		const payload = await response.json();
+		if (
+			!Array.isArray(payload.translations) ||
+			payload.translations.length !== batch.length ||
+			payload.translations.some(
+				(entry) => typeof entry?.text !== 'string' || entry.text.trim() === ''
+			)
+		) {
+			throw new Error('DeepL returned incomplete or invalid translations');
+		}
+		translated.push(...payload.translations.map((entry) => entry.text));
 	}
-
-	return payload.translations.map((entry) => entry.text);
+	return translated;
 };
 
 const translatePost = async (sourceFile, sourceRaw, sourceHash, targetLocale, languageCodes) => {
@@ -825,27 +768,21 @@ const translatePost = async (sourceFile, sourceRaw, sourceHash, targetLocale, la
 		);
 	}
 
-	const bodyChunks = splitMarkdownForTranslation(content);
-	const structuredChunks = bodyChunks.map((chunk) => createStructuredMarkdownChunk(chunk));
+	const markdown = createMarkdownTranslation(content);
 	const [translatedMeta, translatedBodyChunks] = await Promise.all([
 		translateTexts([title, description], languageCodes),
-		translateTexts(
-			structuredChunks.map((chunk) => chunk.text),
-			{
-				...languageCodes,
-				customInstructions: structuredMarkdownInstructions,
-				tag_handling: 'xml',
-				tag_handling_version: 'v2',
-				outline_detection: false,
-				splitting_tags: ['h', 'p', 'li', 'line'],
-				ignore_tags: ['codeblock', 'rawblock']
-			}
-		)
+		translateTexts(markdown.texts, {
+			...languageCodes,
+			customInstructions: structuredMarkdownInstructions,
+			tag_handling: 'xml',
+			tag_handling_version: 'v2',
+			outline_detection: false,
+			splitting_tags: ['h', 'p', 'li', 'line'],
+			ignore_tags: ['codeblock', 'rawblock']
+		})
 	]);
 
-	const translatedBody = structuredChunks
-		.map((chunk, index) => chunk.restore(translatedBodyChunks[index] ?? chunk.text))
-		.join('\n\n');
+	const translatedBody = markdown.restore(translatedBodyChunks);
 
 	const nextData = {
 		...(data.access === 'membership'

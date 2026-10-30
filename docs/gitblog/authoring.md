@@ -40,6 +40,8 @@ The default is `deepl`, including when the configuration file is absent, to pres
 - `deepl`: Keeps the existing ID backfill and DeepL translation flow. Deployment CI can generate translations for new posts.
 - `manual`: Checks IDs and translations without modifying them. It does not call DeepL, automatically change IDs, or delete orphan translations. Published source posts require current translations in every configured target language.
 
+DeepL sync preserves table rows, cells, alignment and fenced code locally, batches requests within the provider limits, and rejects incomplete responses before replacing a post translation. With a DeepL key available, the next sync regenerates translations using an older Markdown schema once; subsequent unchanged syncs reuse the current files. This migration uses the normal DeepL character quota.
+
 When switching existing DeepL translations to manual mode, review their content and use the registration command below. Do not change metadata alone to mark an unreviewed translation as current. Switching from manual mode to DeepL may regenerate translations.
 
 ## 1. Inspect the context and write the source post
