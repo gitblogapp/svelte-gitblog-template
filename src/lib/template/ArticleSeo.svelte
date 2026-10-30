@@ -68,12 +68,14 @@
 	{/each}
 	{#if coverUrl}
 		<meta property="og:image" content={coverUrl} />
+		<meta property="og:image:alt" content={post.title} />
 	{/if}
 	<meta name="twitter:card" content={coverUrl ? 'summary_large_image' : 'summary'} />
 	<meta name="twitter:title" content={post.title} />
 	<meta name="twitter:description" content={post.description} />
 	{#if coverUrl}
 		<meta name="twitter:image" content={coverUrl} />
+		<meta name="twitter:image:alt" content={post.title} />
 	{/if}
 	<meta data-pagefind-filter={`Category:${post.category}`} />
 	<meta data-pagefind-filter={`Locale:${locale}`} />
