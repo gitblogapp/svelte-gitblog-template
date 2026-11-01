@@ -1,3 +1,4 @@
+import { publicUrl } from '@gitblogapp/core/seo';
 import { env as publicEnv } from '$env/dynamic/public';
 import { getLanguageTag, normalizeLocale, sourceLocale, type Locale } from '$lib/locales';
 
@@ -72,6 +73,7 @@ const siteWithPublicEnv = {
 	title: preferPublicEnvKey('PUBLIC_SITE_TITLE', 'Blog'),
 	tagline: getPublicEnv('PUBLIC_SITE_TAGLINE'),
 	description: getPublicEnv('PUBLIC_SITE_DESCRIPTION'),
+	authorUrl: getPublicEnv('PUBLIC_AUTHOR_URL') ? publicUrl(getPublicEnv('PUBLIC_AUTHOR_URL'), 'PUBLIC_AUTHOR_URL') : '',
 	author: preferPublicEnvKeys(['PUBLIC_SITE_AUTHOR', 'PUBLIC_SITE_OWNER'], ''),
 	footer: getPublicEnv('PUBLIC_SITE_FOOTER'),
 	url: siteUrl,

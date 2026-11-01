@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { authorEntity, articleSeoSchema } from "@gitblogapp/core/seo";
 	import SeoLinks from '$lib/components/SeoLinks.svelte';
 	import { toAbsoluteUrl, toJsonLdScript, toPostSeoLinks } from '$lib/seo';
 	import type { ArticlePageProps } from './contracts';
@@ -36,14 +37,9 @@
 				'@type': 'WebPage',
 				'@id': canonicalUrl
 			},
-			author: {
-				'@type': 'Person',
-				name: site.author
-			},
-			publisher: {
-				'@type': 'Person',
-				name: site.author
-			}
+			...articleSeoSchema(post.seo),
+			author: authorEntity(site.author, site.url, site.authorUrl),
+			publisher: authorEntity(site.author, site.url, site.authorUrl)
 		})
 	);
 </script>

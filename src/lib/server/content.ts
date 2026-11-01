@@ -1,3 +1,4 @@
+import { publicArticleSeo, articleSeoHtml, type ArticleSeo } from '@gitblogapp/core/seo';
 import {membershipStub} from '@gitblogapp/core/membership';
 import { ttsEnabled, ttsVoice, audioEntry, rawAudio } from './tts';
 import { createSpokenText } from './body-excerpt';
@@ -98,6 +99,7 @@ type Frontmatter = {
 };
 
 type ParsedPost = {
+	seo?: ArticleSeo;
 	access: 'public' | 'membership';
 	membershipId: string | null;
 	previewAllowed: boolean;
@@ -244,6 +246,7 @@ const parsePost = (
 	const frontmatter = data as Frontmatter;
 	const stub=membershipStub(data,rawContent,sourceSpeech);
 	const member=stub.access==='membership';
+	const seo = publicArticleSeo(data.seo, stub.access);
 	const {previewAllowed,membershipId,body:content}=stub;
 
 	if (!frontmatter.title || !frontmatter.description || !frontmatter.date) {
@@ -301,6 +304,7 @@ const parsePost = (
 	const speechVoice = sourceSpeech?.ttsVoice ?? ttsVoice(frontmatter.ttsVoice);
 	return {
 		id,
+		seo,
 		access: member ? 'membership' : 'public',
 		membershipId,
 		previewAllowed,
@@ -327,7 +331,7 @@ const parsePost = (
 			? rawAudio(audioEntry(id, locale, speechVoice, createSpokenText(content))?.fullPath || '')
 			: null,
 		giscusTerm: createGiscusTerm(id),
-		html: marked.parse(content) as string,
+		html: articleSeoHtml(seo, marked.parse(content) as string, locale),
 		timestamp
 	};
 };
@@ -413,6 +417,7 @@ const toSummary = (post: ParsedPost): PostSummary => ({
 
 const toBlogPost = (post: ParsedPost): BlogPost => ({
 	...toSummary(post),
+	seo: post.seo,
 	html: post.html
 });
 

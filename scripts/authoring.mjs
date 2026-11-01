@@ -126,6 +126,7 @@ try {
 				'docs/gitblog/github-app.md',
 				'docs/gitblog/authoring.md',
 				'docs/gitblog/llm-writing-guidelines.md',
+				'docs/gitblog/answer-engine-content.md',
 				'docs/gitblog/taxonomy.md',
 				'.gitblog/authoring.json'
 			],

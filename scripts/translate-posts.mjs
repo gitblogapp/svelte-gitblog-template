@@ -1,3 +1,4 @@
+import { translateArticleSeo } from '@gitblogapp/core/seo';
 import { loadEnvFile } from './lib/env.mjs';
 import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -136,7 +137,7 @@ const defaultApiUrl = (() => {
 
 const translateEndpoint = `${defaultApiUrl}/v2/translate`;
 const translationChunkLimit = 20_000;
-const translationSchemaVersion = 'markdown-xml-v3';
+const translationSchemaVersion = 'markdown-xml-v4';
 const siteTranslationSchemaVersion = 'site-copy-v1';
 const plainTextCustomInstructions = [
 	'Use natural grammar, punctuation, and capitalization for the target language.',
@@ -769,7 +770,7 @@ const translatePost = async (sourceFile, sourceRaw, sourceHash, targetLocale, la
 	}
 
 	const markdown = createMarkdownTranslation(content);
-	const [translatedMeta, translatedBodyChunks] = await Promise.all([
+	const [translatedMeta, translatedBodyChunks, translatedSeo] = await Promise.all([
 		translateTexts([title, description], languageCodes),
 		translateTexts(markdown.texts, {
 			...languageCodes,
@@ -779,12 +780,14 @@ const translatePost = async (sourceFile, sourceRaw, sourceHash, targetLocale, la
 			outline_detection: false,
 			splitting_tags: ['h', 'p', 'li', 'line'],
 			ignore_tags: ['codeblock', 'rawblock']
-		})
+		}),
+		translateArticleSeo(data.access === 'membership' ? undefined : data.seo, texts => translateTexts(texts, languageCodes))
 	]);
 
 	const translatedBody = markdown.restore(translatedBodyChunks);
 
 	const nextData = {
+		...(translatedSeo ? { seo: translatedSeo } : {}),
 		...(data.access === 'membership'
 			? {
 					access: 'membership',

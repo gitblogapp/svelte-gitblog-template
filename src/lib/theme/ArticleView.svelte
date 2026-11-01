@@ -49,6 +49,7 @@
 				<p class="article-desc font-body">
 					"{post.description}"
 				</p>
+				<p class="article-author">{#if site.authorUrl}<a href={site.authorUrl} rel="author">{site.author}</a>{:else}{site.author}{/if}</p>
 				{#if post.tags.length > 0}
 					<div class="article-tags font-label">
 						{#each post.tags as tag (tag)}

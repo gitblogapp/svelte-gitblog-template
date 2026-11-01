@@ -1,3 +1,4 @@
+import { articleSeoMarkdown } from '@gitblogapp/core/seo';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
 import { error } from '@sveltejs/kit';
@@ -31,7 +32,7 @@ export function markdownResponse(locale: Locale, slug: string) {
 	return new Response(
 		`---\n${Object.entries(metadata)
 			.map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-			.join('\n')}\n---\n\n${body.trim()}\n`,
+			.join('\n')}\n---\n\n${articleSeoMarkdown(post.seo, body, locale).trim()}\n`,
 		{
 			headers: {
 				'Content-Type': 'text/markdown; charset=utf-8',

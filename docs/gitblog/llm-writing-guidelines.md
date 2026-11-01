@@ -57,3 +57,5 @@
 ## Translate category and tag labels consistently
 
 Use the [taxonomy workflow](taxonomy.md) alongside prose translation. Read the existing `content/taxonomy.json`, translate missing category and tag labels into English and configured languages, and reuse established terms. Keep IDs, source references, user-edited translations and `separate` overrides unchanged. Do not merge distinct categories. Tags merge only through equal normalized English labels unless separated; review ambiguous translations and do not equate related concepts such as Bitcoin and Bitcoin Cash. Original article frontmatter remains a reference, not a place to invent a new tag for each language. Validate with `taxonomy:check`, then the normal authoring checks.
+
+For evidence-based articles, follow [answer-first writing and optional SEO metadata](answer-engine-content.md). Do not require these fields for every post or manufacture sources.

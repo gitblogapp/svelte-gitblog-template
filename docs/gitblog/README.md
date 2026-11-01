@@ -36,3 +36,5 @@ Official documentation lives only in `docs/gitblog/`. The former `docs/*.md` and
 prompt, update its guide links to `docs/gitblog/<filename>` or
 `docs/gitblog/readme/<filename>`. The root README remains owner-managed; template updates
 do not rewrite it automatically.
+
+Answer-first writing and evidence: [Optional answer, sources, reference date and FAQ](answer-engine-content.md).
