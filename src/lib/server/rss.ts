@@ -4,7 +4,7 @@ import { sourceLocale } from '$lib/locales';
 import { toHomePath, toPostPath, toRssPath } from '$lib/routes';
 import { toAbsoluteUrl } from '$lib/seo';
 import { getFeedPosts } from '$lib/server/content';
-import { bodyExcerptXml } from './body-excerpt';
+import { previewContentXml } from './preview-content.js';
 import { createXmlResponse, escapeXml } from '$lib/server/xml';
 import { getSiteConfig } from '$lib/site';
 
@@ -39,7 +39,7 @@ export const createRssResponse = (locale: Locale) => {
 		<title>${escapeXml(post.title)}</title>
 		<link>${escapeXml(link)}</link>
 		<guid isPermaLink="false">${escapeXml(post.id)}</guid>
-		<description>${escapeXml(post.excerpt)}</description>${bodyExcerptXml(post.bodyExcerpt, bodyBudget)}
+		<description>${escapeXml(post.excerpt)}</description>${previewContentXml(post, bodyBudget)}
 		<pubDate>${new Date(post.date).toUTCString()}</pubDate>
 		<hub:postId>${escapeXml(post.id)}</hub:postId>
         <hub:access>${post.access}</hub:access>

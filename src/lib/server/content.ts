@@ -427,7 +427,8 @@ export const getAllPosts = (locale: Locale = sourceLocale): PostSummary[] =>
 export const getFeedPosts = (locale: Locale = sourceLocale) =>
 	(postsByLocale.get(locale) ?? []).map((post) => ({
 		...toSummary(post),
-		bodyExcerpt: post.bodyExcerpt
+		bodyExcerpt: post.bodyExcerpt,
+		seo: post.seo
 	}));
 
 export const getPost = (slug: string, locale: Locale = sourceLocale): BlogPost | undefined => {
