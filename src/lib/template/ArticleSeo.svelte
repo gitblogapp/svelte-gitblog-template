@@ -38,8 +38,8 @@
 				'@id': canonicalUrl
 			},
 			...articleSeoSchema(post.seo),
-			author: authorEntity(site.author, site.url, site.authorUrl),
-			publisher: authorEntity(site.author, site.url, site.authorUrl)
+			author: { ...authorEntity(site.author, site.url, site.authorUrl), '@type': site.authorType },
+			publisher: { ...authorEntity(site.author, site.url, site.authorUrl), '@type': site.authorType }
 		})
 	);
 </script>

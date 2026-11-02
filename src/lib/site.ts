@@ -73,6 +73,7 @@ const siteWithPublicEnv = {
 	title: preferPublicEnvKey('PUBLIC_SITE_TITLE', 'Blog'),
 	tagline: getPublicEnv('PUBLIC_SITE_TAGLINE'),
 	description: getPublicEnv('PUBLIC_SITE_DESCRIPTION'),
+	authorType: getPublicEnv('PUBLIC_SITE_AUTHOR_TYPE') === 'Organization' ? 'Organization' : 'Person',
 	authorUrl: getPublicEnv('PUBLIC_AUTHOR_URL') ? publicUrl(getPublicEnv('PUBLIC_AUTHOR_URL'), 'PUBLIC_AUTHOR_URL') : '',
 	author: preferPublicEnvKeys(['PUBLIC_SITE_AUTHOR', 'PUBLIC_SITE_OWNER'], ''),
 	footer: getPublicEnv('PUBLIC_SITE_FOOTER'),
