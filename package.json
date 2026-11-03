@@ -50,9 +50,9 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
-    "@gitblogapp/browser": "file:vendor/gitblog-packages/gitblogapp-browser-0.2.0.tgz",
-    "@gitblogapp/cli": "file:vendor/gitblog-packages/gitblogapp-cli-0.2.1.tgz",
-    "@gitblogapp/core": "file:vendor/gitblog-packages/gitblogapp-core-0.2.0.tgz",
+    "@gitblogapp/browser": "0.2.1",
+    "@gitblogapp/cli": "0.2.1",
+    "@gitblogapp/core": "0.2.1",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
     "marked": "^18.0.0"
