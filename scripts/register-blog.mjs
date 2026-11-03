@@ -1,6 +1,14 @@
 // Executed only by the pinned official reusable workflow. Never execute blog code here.
 import { parseEnv } from 'node:util';
 export const templateRepository = 'gitblogapp/svelte-gitblog-template';
+// Only published official distribution repositories may establish provenance.
+// Development repositories and look-alike names are intentionally excluded.
+export const templateRepositories = Object.freeze([
+	templateRepository,
+	'gitblogapp/astro-gitblog-template',
+	'gitblogapp/react-gitblog-template',
+	'gitblogapp/vanilla-gitblog-template'
+]);
 export async function registerBlog(
 	env = process.env,
 	request = fetch,
@@ -41,7 +49,7 @@ export async function registerBlog(
 		repo.is_template ||
 		env.GITHUB_REF !== `refs/heads/${repo.default_branch}` ||
 		![repo.template_repository, repo.parent, repo.source].some(
-			(item) => item?.full_name?.toLowerCase() === templateRepository
+			(item) => templateRepositories.includes(item?.full_name?.toLowerCase())
 		)
 	)
 		throw new Error('A public blog from the official template on its default branch is required');
