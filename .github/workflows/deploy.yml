@@ -35,8 +35,8 @@ jobs:
       project_name: ${{ steps.settings.outputs.project_name }}
       site_url: ${{ steps.settings.outputs.site_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - run: npm ci
@@ -54,16 +54,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Pages
         if: needs.configuration.outputs.provider == 'github'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
@@ -72,12 +72,19 @@ jobs:
         run: npm ci
 
       - name: Restore optimized image cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .cache/gitblog-images
           key: ${{ runner.os }}-gitblog-images-v1-${{ hashFiles('package-lock.json', 'scripts/optimize-images.mjs') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ${{ runner.os }}-gitblog-images-v1-${{ hashFiles('package-lock.json', 'scripts/optimize-images.mjs') }}-
+
+      - name: Synchronize verified GitHub Pages domain
+        if: needs.configuration.outputs.provider == 'github'
+        run: node scripts/sync-pages-domain.mjs
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Validate launch configuration
         run: npm run site:check
@@ -190,7 +197,7 @@ jobs:
 
       - name: Setup Python for CPU speech
         if: steps.tts.outputs.enabled == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: pip
@@ -198,7 +205,7 @@ jobs:
 
       - name: Cache pinned Supertonic model
         if: steps.tts.outputs.enabled == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .cache/supertonic3
           key: supertonic3-aafc6e32416a594460b32413efc49d7fe4ce6d46
@@ -246,7 +253,7 @@ jobs:
         run: test -f build/.well-known/blog-hub.json
 
       - name: Save expected discovery policy for deployment checks
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: discovery-check
           path: build/.well-known/ai-discovery.json
@@ -273,7 +280,7 @@ jobs:
           tar -tf "$RUNNER_TEMP/artifact.tar" ./.well-known/blog-hub.json > /dev/null
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: github-pages
           path: ${{ runner.temp }}/artifact.tar
@@ -291,22 +298,22 @@ jobs:
       - name: Deploy to GitHub Pages
         if: needs.configuration.outputs.provider == 'github'
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: needs.configuration.outputs.provider == 'cloudflare'
         with:
           ref: ${{ needs.build.outputs.commit_sha }}
 
       - name: Download static site for Cloudflare
         if: needs.configuration.outputs.provider == 'cloudflare'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: github-pages
           path: ${{ runner.temp }}/blog-artifact
       - name: Setup Node.js for Cloudflare
         if: needs.configuration.outputs.provider == 'cloudflare'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
       - run: npm ci
@@ -331,15 +338,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.build.outputs.commit_sha }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: discovery-check
           path: build/.well-known
@@ -347,7 +354,7 @@ jobs:
         run: npm run discovery:check -- --live
       - name: Save crawl access results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: discovery-audit
           path: discovery-audit-live.json

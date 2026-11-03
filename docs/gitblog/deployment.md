@@ -118,3 +118,9 @@ and queries, primary self-canonical, sitemap URLs, preview noindex and the absen
 of noindex on production. Use Search Console to monitor canonical/index changes;
 existing results change after recrawling, not immediately. Prior immutable
 production deployments need separate inspection; new builds do not rewrite them.
+
+## Address validation before deployment
+
+The GitHub deployment workflow reads the repository Pages API before `site:check`. If the connected Pages domain matches `PUBLIC_SITE_URL`, it repairs a missing/stale `static/CNAME` in the build workspace. The source settings and provider domain are never changed by this step. A provider mismatch fails with a link to the required action: complete GitBlog **Blog settings → Address settings**, then deploy again. Local `site:check` retains strict validation; use address settings or `site:configure` to persist the matching source file. Cloudflare retains its separate domain-readiness check.
+
+The workflow actions use Node.js 24 runtimes; choosing `node-version: 24` for build tools alone does not upgrade an action's runtime. Existing blogs receive these workflow changes through a template update.
