@@ -30,7 +30,7 @@ This reads the Git `origin` push repository and GitHub repository, Pages, and di
 | `PUBLIC_SITE_URL`            | Ask whether to use the suggested Pages address or a custom domain they control. Use an absolute HTTPS URL.                                                              |
 | `PUBLIC_SITE_REPOSITORY`     | Infer `owner/repo` from the single `origin` push URL; do not invent it.                                                                                                 |
 | `PUBLIC_SOURCE_LOCALE`       | Ask for the language of original posts. Do not infer it solely from the conversation language.                                                                          |
-| `PUBLIC_TRANSLATION_LOCALES` | Ask for the target languages. An explicit empty string means no translations.                                                                                           |
+| `PUBLIC_TRANSLATION_LOCALES` | Ask for up to 11 target languages (12 distinct languages including the source). An explicit empty string means no translations.                                                                                           |
 | `PUBLIC_GISCUS_REPO`         | Use the same repository when comments are enabled.                                                                                                                      |
 | `PUBLIC_GISCUS_REPO_ID`      | Read GitHub's repository node ID. This is not the numeric REST repository ID.                                                                                           |
 | `PUBLIC_GISCUS_CATEGORY_ID`  | Resolve from the repository's discussion categories. Reuse a valid configured ID, prefer Announcements, or use the only category. Ask when selection remains ambiguous. |

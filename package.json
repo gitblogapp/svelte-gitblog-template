@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@gitblogapp/browser": "file:vendor/gitblog-packages/gitblogapp-browser-0.2.0.tgz",
-    "@gitblogapp/cli": "file:vendor/gitblog-packages/gitblogapp-cli-0.2.0.tgz",
+    "@gitblogapp/cli": "file:vendor/gitblog-packages/gitblogapp-cli-0.2.1.tgz",
     "@gitblogapp/core": "file:vendor/gitblog-packages/gitblogapp-core-0.2.0.tgz",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",

@@ -333,6 +333,7 @@ jobs:
           npx --yes wrangler@4.147.0 pages deploy "$RUNNER_TEMP/blog-site" --project-name "$CF_PROJECT" --branch "$CF_BRANCH"
 
   discovery:
+    timeout-minutes: 15
     needs: [build, deploy]
     runs-on: ubuntu-latest
     permissions:
@@ -351,7 +352,7 @@ jobs:
           name: discovery-check
           path: build/.well-known
       - name: Check deployed crawl access
-        run: npm run discovery:check -- --live
+        run: npm run discovery:check -- --live --wait-seconds=180
       - name: Save crawl access results
         if: always()
         uses: actions/upload-artifact@v6
