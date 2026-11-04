@@ -6,12 +6,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import { marked } from 'marked';
-import { readPolicy } from './lib/authoring.mjs';
+import { inspect, readTranslationPlan } from './lib/authoring.mjs';
 import { translateTaxonomy, collectTaxonomy, saveTaxonomy } from './lib/taxonomy.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
-if ((await readPolicy(projectRoot)).translationMode === 'manual') {
+const plan = await readTranslationPlan(projectRoot);
+if (plan.policy.translationMode === 'manual' && !plan.hasDeeplPosts) {
 	throw new Error(
 		'Manual translation mode: use npm run translate:content to validate without calling DeepL'
 	);
@@ -19,6 +20,12 @@ if ((await readPolicy(projectRoot)).translationMode === 'manual') {
 const sourceDir = path.join(projectRoot, 'content/posts');
 
 loadEnvFile(path.join(projectRoot, '.env.production'));
+
+// Direct invocations must enforce manual freshness before any DeepL calls or mutations.
+if (plan.policy.translationMode === 'manual' || plan.hasManualPosts) {
+	const report = await inspect(projectRoot, process.env);
+	if (!report.ok) throw new Error(report.errors.join('\n'));
+}
 
 const sourceSiteCopy = {
 	tagline: process.env.PUBLIC_SITE_TAGLINE?.trim() ?? '',
@@ -863,9 +870,9 @@ const translateSiteCopy = async (targetLocale, targetLang, sourceHash) => {
 };
 
 const sourceFiles = await listMarkdownFiles(sourceDir);
-const sourceByName = new Map(sourceFiles.map((file) => [path.basename(file), file]));
+const sourceByName = new Map(plan.posts.map((post) => [path.basename(post.path), post]));
 
-if (targetLocales.length > 0 || apiKey) {
+if (plan.policy.translationMode === 'deepl' && (targetLocales.length > 0 || apiKey)) {
 	await translateTaxonomy(projectRoot, sourceLocale, targetLocales, (texts, locale) => {
 		if (!apiKey)
 			throw new Error(
@@ -876,7 +883,7 @@ if (targetLocales.length > 0 || apiKey) {
 			context: `Blog taxonomy. ${sourceSiteCopy.description} Preserve proper names and distinguish related but different concepts.`
 		});
 	});
-} else {
+} else if (plan.policy.translationMode === 'deepl') {
 	await saveTaxonomy(projectRoot, await collectTaxonomy(projectRoot, sourceLocale));
 }
 
@@ -903,7 +910,7 @@ for (const targetLocale of targetLocales) {
 		siteTargetState.locale === targetLocale &&
 		(apiKey === '' || siteTargetState.schemaVersion === siteTranslationSchemaVersion);
 
-	if (isSiteTranslationCurrent) {
+	if (plan.policy.translationMode === 'manual' || isSiteTranslationCurrent) {
 		skippedSiteCount += 1;
 	} else {
 		pendingSiteCopies.push({
@@ -928,7 +935,9 @@ for (const targetLocale of targetLocales) {
 	}
 
 	for (const sourceFile of sourceFiles) {
-		const sourceRaw = await readFile(sourceFile, 'utf8');
+		const source = sourceByName.get(path.basename(sourceFile));
+		if (source.translationMode === 'manual') continue;
+		const sourceRaw = source.raw;
 		const sourceHash = hashContent(withoutPostId(sourceRaw));
 		const targetFile = path.join(targetDir, path.basename(sourceFile));
 		const targetState = await inferTranslationState(targetFile);

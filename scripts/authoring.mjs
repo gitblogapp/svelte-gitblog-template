@@ -12,6 +12,7 @@ import {
 	inspect,
 	locales,
 	readPolicy,
+	resolveTranslationMode,
 	validSlug,
 	readPost,
 	postErrors,
@@ -165,8 +166,6 @@ try {
 	} else if (command === 'translation') {
 		validSlug(slug);
 		const languages = locales(process.env);
-		if ((await readPolicy(root)).translationMode !== 'manual')
-			throw new Error('Set translationMode to manual before accepting LLM translations');
 		if (!languages.targets.includes(locale))
 			throw new Error('Locale must be a configured translation target');
 		if (!values.from || !values['source-hash'])
@@ -174,6 +173,8 @@ try {
 				'translation requires --from and the --source-hash returned by status BEFORE translating'
 			);
 		const source = await readPost(root, `content/posts/${slug}.md`);
+		if (resolveTranslationMode(source.data, await readPolicy(root)) !== 'manual')
+			throw new Error('Set translationMode: manual in this source post or the blog default before accepting LLM translations');
 		if (sourceHash(source.raw) !== values['source-hash'])
 			throw new Error(
 				'Source changed since translation began. Read and translate the current revision.'

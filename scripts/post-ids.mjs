@@ -3,7 +3,7 @@ import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
-import { readPolicy } from './lib/authoring.mjs';
+import { readTranslationPlan } from './lib/authoring.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = process.env.POST_IDS_ROOT
@@ -12,7 +12,8 @@ const projectRoot = process.env.POST_IDS_ROOT
 const sourceDir = path.join(projectRoot, 'content/posts');
 const translationsDir = path.join(projectRoot, 'content/translations');
 const writeMode = process.argv.includes('--write');
-if (writeMode && (await readPolicy(projectRoot)).translationMode === 'manual') {
+const plan = await readTranslationPlan(projectRoot);
+if (writeMode && (plan.policy.translationMode === 'manual' || plan.hasManualPosts)) {
 	throw new Error(
 		'Manual authoring mode: use posts:ids:check; IDs and orphan translations must be resolved explicitly'
 	);

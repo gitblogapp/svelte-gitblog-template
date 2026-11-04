@@ -35,14 +35,43 @@ Install Node.js 24.12 or newer with npm, then run `npm ci` at the repository roo
 }
 ```
 
-The default is `deepl`, including when the configuration file is absent, to preserve existing behavior. `manual` means a person or LLM manages translation files; it does not invoke a translation model. Keep `PUBLIC_SOURCE_LOCALE` and `PUBLIC_TRANSLATION_LOCALES` configured in `.env.production`. GitBlog accepts at most eight languages, including the source language.
+The default is `deepl`, including when the configuration file is absent, to preserve existing behavior. `manual` means a person or LLM manages translation files; it does not invoke a translation model. Keep `PUBLIC_SOURCE_LOCALE` and `PUBLIC_TRANSLATION_LOCALES` configured in `.env.production`. GitBlog accepts at most twelve languages, including the source language.
 
-- `deepl`: Keeps the existing ID backfill and DeepL translation flow. Deployment CI can generate translations for new posts.
-- `manual`: Checks IDs and translations without modifying them. It does not call DeepL, automatically change IDs, or delete orphan translations. Published source posts require current translations in every configured target language.
+- `deepl`: Generates translations for posts whose effective mode is DeepL. Deployment CI can translate new or changed posts.
+- `manual`: A person or LLM supplies and registers translations. Published manual posts require current translations in every configured target language.
+
+### Choose a translation mode per post
+
+The source post's optional `translationMode` takes precedence over `.gitblog/authoring.json`.
+Omit it to inherit the blog default. Only `manual` and `deepl` are accepted:
+
+```yaml
+---
+# Other required post fields remain here.
+translationMode: manual
+---
+```
+
+With a DeepL blog default, set `translationMode: manual` on any post translated by a person or LLM,
+then register each language using `author:translation` below. DeepL never receives or overwrites
+that post. With a manual blog default, set `translationMode: deepl` on a post that should use DeepL;
+configure `DEEPL_API_KEY` locally or as a repository secret and run `npm run translate:content`,
+or push for deployment CI to translate it. Keep credentials out of committed files.
+
+`author:status` reports the effective `translationMode` for each source. Set the override before
+reading its `sourceHash`. Missing, stale or edited manual translations fail validation before
+any automatic translation begins; drafts may omit translations. Changing the source or its mode
+requires a new translation review/registration or DeepL generation, as appropriate.
+
+Site copy and taxonomy continue to follow the **blog default**. A DeepL override under a manual
+default translates only that post; it does not send site copy or taxonomy to DeepL. In manual or
+mixed blogs, sync checks IDs and preserves orphan translations instead of automatically repairing
+or deleting content. Create new posts with `author:new` and resolve reported ID/orphan errors
+explicitly. Blogs containing only DeepL-managed content retain automatic ID preparation.
 
 DeepL sync preserves table rows, cells, alignment and fenced code locally, batches requests within the provider limits, and rejects incomplete responses before replacing a post translation. With a DeepL key available, the next sync regenerates translations using an older Markdown schema once; subsequent unchanged syncs reuse the current files. This migration uses the normal DeepL character quota.
 
-When switching existing DeepL translations to manual mode, review their content and use the registration command below. Do not change metadata alone to mark an unreviewed translation as current. Switching from manual mode to DeepL may regenerate translations.
+When switching a post or the blog default from DeepL to manual mode, review their content and use the registration command below. Do not change metadata alone to mark an unreviewed translation as current. Switching from manual mode to DeepL may regenerate translations.
 
 ## 1. Inspect the context and write the source post
 
@@ -77,7 +106,7 @@ Follow [multilingual taxonomy](taxonomy.md) for categories and tags. Run `taxono
 
 ## 2. Write and register LLM translations
 
-Finish the source post intended for publication, set `published: true`, and then read its current hash. Use the same process for revisions. Changing the source date, tags, or publication state after translating also changes the hash and requires another translation review.
+For a post whose effective mode is `manual`, finish the source post intended for publication, set `published: true`, and then read its current hash. Use the same process for revisions. Changing the source date, tags, or publication state after translating also changes the hash and requires another translation review.
 
 ```sh
 npm run author:status -- 2026-10-18-my-post
