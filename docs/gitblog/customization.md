@@ -149,3 +149,9 @@ First-launch choices are recorded in `.gitblog/setup.json` and preserved during 
 ### Taxonomy preservation
 
 `content/taxonomy.json` is blog-owned content, including stable IDs, cached translations, aliases and tag separation overrides. The existing `content/` preservation rule covers it. An update must not regenerate, replace or remove this dictionary. Ordinary builds and update checks read it without writing; only explicit taxonomy synchronization or publishing translation workflows extend it. See [taxonomy](taxonomy.md).
+
+### Article integration order
+
+The default article layout keeps the article body and membership reader first, then comments, then related posts. `ArticleView.svelte` renders `GiscusComments` before `RelatedPosts`; the GitBlog related-posts embed mounts after that related-posts outlet, or at the end of the article when the outlet is absent. Preserve this order when customizing the theme. With comments disabled, related posts remain available.
+
+Studio preserves existing `src/lib/theme/` customizations during updates. When adopting layout changes in an existing blog, review the article theme explicitly instead of replacing the user's whole theme. Release 1.0.14 aligns this documented layout with the other three official templates and includes the shared YouTube support from 1.0.13.
