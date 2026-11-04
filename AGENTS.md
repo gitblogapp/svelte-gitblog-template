@@ -3,6 +3,7 @@
 1. Run `npm run author:context` to discover the actual settings and instruction paths. Do not rely on README content for operational rules.
 2. Read [user instructions](.gitblog/user-instructions.md) if present. Missing user instructions mean no additional preferences; do not create or replace them automatically.
 3. Read the [official agent workflow](docs/gitblog/agent-workflow.md), then the guides relevant to the task from the [documentation index](docs/gitblog/README.md). Use `author:status` to resume content work.
+4. End every agent-authored or substantively revised post with visible attribution of both the host service (such as ChatGPT or Claude) and the model after all article content and references. Distinguish the service name from the model name/version, use only confirmed information, and explicitly mark each unavailable field as unknown. Preserve original authoring credits when revising or translating. Follow [model attribution rules](docs/gitblog/llm-writing-guidelines.md#사용-모델-표기).
 
 The user's current request takes precedence over saved preferences. Apply personal writing preferences over official stylistic defaults; preserve validation, credential handling, and publication requirements. Resolve conflicting site settings with the user instead of silently rewriting them.
 

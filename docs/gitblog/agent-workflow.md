@@ -15,6 +15,7 @@ Use `author:status` to determine the next step.
 
 - Store source posts in `content/posts/*.md` and images in `static/uploads/`. Do not change application code, workflows, or authentication settings as part of a post-writing task.
 - Follow the user's intent and the style of existing posts. Do not invent facts, quotations, links, execution results, or personal experiences.
+- Finish each agent-authored or substantively revised post with visible host-service and model attribution after the FAQ and references, following [model attribution rules](llm-writing-guidelines.md#사용-모델-표기). Identify the confirmed host service, models and their actual roles separately; explicitly mark each unavailable service or model field as unknown. Preserve original credits in revisions and translations, and verify the final attribution before publishing.
 - Create new posts with `author:new`. Preserve each existing post's `id`, filename, and original `date`.
 - Keep drafts at `published: false`. When the user requests publication, set the publication state before translating. Drafts committed to Git are not private storage.
 - For category/tag translations and unified tag search, follow [multilingual taxonomy](taxonomy.md). Run `taxonomy:sync`, fill missing dictionary labels (including English), preserve IDs and user corrections, and run `taxonomy:check`. Post frontmatter retains its original taxonomy references.
