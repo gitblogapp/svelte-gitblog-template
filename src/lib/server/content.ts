@@ -1,3 +1,4 @@
+import { youtubeExtension } from '@gitblogapp/core/youtube';
 import { resolveCoverImage } from '@gitblogapp/core/cover-images';
 import { publicArticleSeo, articleSeoHtml, type ArticleSeo } from '@gitblogapp/core/seo';
 import {membershipStub} from '@gitblogapp/core/membership';
@@ -61,6 +62,8 @@ marked.use({
 		}
 	}
 });
+
+marked.use(youtubeExtension());
 
 const sourcePostFiles = import.meta.glob('/content/posts/*.md', {
 	eager: true,

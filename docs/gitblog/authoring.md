@@ -177,3 +177,19 @@ The completion report must include changed files, source and target languages, v
 > Read this repository's AGENTS.md, run author:context, read user instructions if present, then follow docs/gitblog/authoring.md. The topic is “...”, the audience is “...”, the source material is “...”, and the desired style is “...”. Write the source and translations for the configured languages, and pass the harness checks. This task is limited to preparing a draft.
 
 To request publication as well, replace the last sentence with: “Commit the reviewed changes, deploy them, and report the actual deployment status and whether GitBlog ingestion has been verified.” New posts start as drafts. Do not expand a request into public deployment without publication intent.
+
+## YouTube videos
+
+Put a YouTube video URL in its own paragraph, with a blank line before and after it:
+
+```markdown
+An introduction to the video.
+
+https://www.youtube.com/watch?v=M7lc1UVf-VE&t=90s
+
+Continue the article here.
+```
+
+The official templates render standalone HTTPS watch, youtu.be, Shorts, live and embed URLs as responsive players. A standalone Markdown link such as `[Watch the demo](https://youtu.be/M7lc1UVf-VE)` also works. Start times (`t=90`, `t=1m30s`, or `start=90`) are retained. Players do not autoplay and include a link to open YouTube directly. Availability and permission to embed are controlled by the video owner and YouTube.
+
+Keep URLs inside sentences as ordinary links when a player is not wanted. Code blocks, inline code, headings and playlist/channel links are not converted. Do not write raw iframe HTML or scripts to insert a video, and do not invent video IDs. Preserve video URLs and their separate paragraphs in translations. `author:check` reports malformed standalone video URLs as warnings; they remain links. Verify the rendered preview, including playback availability, before publishing.

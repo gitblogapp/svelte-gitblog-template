@@ -20,6 +20,7 @@ Use `author:status` to determine the next step.
 - For category/tag translations and unified tag search, follow [multilingual taxonomy](taxonomy.md). Run `taxonomy:sync`, fill missing dictionary labels (including English), preserve IDs and user corrections, and run `taxonomy:check`. Post frontmatter retains its original taxonomy references.
 - The source post's `translationMode` overrides the blog default. Check its effective mode with `author:status`; site copy and taxonomy retain the blog default.
 - For a post with effective `manual` mode, the LLM writes translations and registers them with `author:translation`. Use the source hash obtained before translating. Never attach a new hash to an outdated translation just to pass validation.
+- For YouTube players, place a video URL in its own paragraph; see [YouTube videos](authoring.md#youtube-videos). Preserve the URL and paragraph boundaries in translations, and keep inline links inline. Do not generate iframe HTML.
 - Preserve code, commands, URLs, image paths, and identifiers during translation. The LLM must review translations for factual accuracy and natural language.
 - Do not bypass validation errors by changing modes, removing translation languages, or changing publication states without the user's intent.
 - Run `author:check` and `author:verify` before publishing. Preserve user changes and commit only the paths included in the task.
