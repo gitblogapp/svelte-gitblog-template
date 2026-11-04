@@ -74,7 +74,9 @@ jobs:
       - name: Restore optimized image cache
         uses: actions/cache@v5
         with:
-          path: .cache/gitblog-images
+          path: |
+            .cache/gitblog-images
+            .cache/gitblog-cover-images
           key: ${{ runner.os }}-gitblog-images-v1-${{ hashFiles('package-lock.json', 'scripts/optimize-images.mjs') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ${{ runner.os }}-gitblog-images-v1-${{ hashFiles('package-lock.json', 'scripts/optimize-images.mjs') }}-

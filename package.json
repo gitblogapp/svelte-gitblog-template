@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "npm run author:check && vite build && npm run images:optimize && node ./scripts/build-cname.mjs && node ./scripts/validate-hub-contract.mjs && node ./scripts/audit-discovery.mjs && pagefind --site build",
+    "build": "npm run author:check && npm run build:site && npm run images:optimize && node ./scripts/build-cname.mjs && node ./scripts/validate-hub-contract.mjs && node ./scripts/audit-discovery.mjs && pagefind --site build",
     "preview": "node ./scripts/preview.mjs",
     "posts:ids": "node ./scripts/post-ids.mjs --write",
     "posts:ids:check": "node ./scripts/post-ids.mjs --check",
@@ -34,7 +34,8 @@
     "taxonomy:sync": "node ./scripts/taxonomy.mjs",
     "taxonomy:check": "node ./scripts/taxonomy.mjs --check",
     "site:app:status": "node ./scripts/setup.mjs app-status",
-    "images:optimize": "node ./scripts/optimize-images.mjs"
+    "images:optimize": "node ./scripts/optimize-images.mjs",
+    "build:site": "node scripts/build-site.mjs"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",
@@ -50,9 +51,9 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
-    "@gitblogapp/browser": "0.2.1",
-    "@gitblogapp/cli": "0.2.1",
-    "@gitblogapp/core": "0.2.1",
+    "@gitblogapp/browser": "0.2.2",
+    "@gitblogapp/cli": "0.2.2",
+    "@gitblogapp/core": "0.2.2",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
     "marked": "^18.0.0"

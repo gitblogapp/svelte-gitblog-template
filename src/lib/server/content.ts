@@ -1,3 +1,4 @@
+import { resolveCoverImage } from '@gitblogapp/core/cover-images';
 import { publicArticleSeo, articleSeoHtml, type ArticleSeo } from '@gitblogapp/core/seo';
 import {membershipStub} from '@gitblogapp/core/membership';
 import { ttsEnabled, ttsVoice, audioEntry, rawAudio } from './tts';
@@ -321,7 +322,7 @@ const parsePost = (
 		category: classification?.category.label ?? (frontmatter.category?.trim() || 'Notes'),
 		tags: classification?.tags.map((tag) => tag.label) ?? normalizeTags(frontmatter.tags),
 		taxonomy: classification,
-		cover: normalizeCover(frontmatter.cover),
+		cover: resolveCoverImage(normalizeCover(frontmatter.cover)),
 		excerpt: member && !previewAllowed ? '' : createExcerpt(frontmatter.description, content),
 		bodyExcerpt: createBodyExcerpt(content),
 		markdown: content,

@@ -1,4 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import { coverImageAssets } from '@gitblogapp/cli/cover-images';
 import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
@@ -11,5 +12,5 @@ export default defineConfig(({ mode }) => {
 		process.env[key] ??= value;
 	}
 
-	return { plugins: [sveltekit()] };
+	return { plugins: [coverImageAssets(), sveltekit()] };
 });
